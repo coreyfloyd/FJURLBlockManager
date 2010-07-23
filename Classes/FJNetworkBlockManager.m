@@ -1,9 +1,5 @@
 #import "FJNetworkBlockManager.h"
 
-
-typedef void (^FJNetworkResponseHandler)(NSData* response);
-typedef void (^FJNetworkErrorHandler)(NSError* error);
-
 int const maxAttempts = 3;
 
 @interface FJNetworkBlockRequest : NSObject {
@@ -95,6 +91,8 @@ int const maxAttempts = 3;
                         
         NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManagerRequest.%i", [self hash]];
         self.requestQueue = dispatch_queue_create([queueName UTF8String], NULL);
+        dispatch_retain(requestQueue);
+
         
         if(queue == nil)
             queue = dispatch_get_main_queue();
@@ -311,6 +309,8 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         
         NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManager.%i", [self hash]];
         self.managerQueue = dispatch_queue_create([queueName UTF8String], NULL);
+        dispatch_retain(managerQueue);
+
         
         self.requestThread = [[NSThread alloc] initWithTarget:self selector:@selector(run) object:nil];
         [self.requestThread start];
@@ -341,8 +341,8 @@ static FJNetworkBlockManager* _defaultmanager = nil;
 
 - (void) sendRequest:(NSURLRequest*)req 
       respondOnQueue:(dispatch_queue_t)queue 
-     completionBlock:(void(^)(NSData* result))completionBlock 
-        failureBlock:(void(^)(NSError* error))errorBlock{
+     completionBlock:(FJNetworkResponseHandler)completionBlock 
+        failureBlock:(FJNetworkErrorHandler)errorBlock{
     
     dispatch_async(self.managerQueue, ^{
         

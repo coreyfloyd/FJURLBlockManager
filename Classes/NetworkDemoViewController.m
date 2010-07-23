@@ -50,9 +50,8 @@
     for(NSString* each in a){
         
         NSURL* url = [NSURL URLWithString:each];
-                
         [i fetchImageAtURL:url 
-            respondOnQueue:dispatch_get_main_queue()       
+            respondOnQueue:dispatch_get_main_queue() 
            completionBlock:^(UIImage* image) {
                               
                NSLog(@"image fetched: %@", [image description]);
@@ -62,8 +61,9 @@
                   
                   NSLog(@"Image fetch error: %@", [error description]);  
                   
-                  
-              }];
+              }
+         
+         requestedByobject:self];
     
     }
     
