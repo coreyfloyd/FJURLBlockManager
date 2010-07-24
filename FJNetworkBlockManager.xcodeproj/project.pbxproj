@@ -15,6 +15,7 @@
 		2899E5220DE3E06400AC0155 /* FJNetworkManagerViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2899E5210DE3E06400AC0155 /* FJNetworkManagerViewController.xib */; };
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
 		28D7ACF80DDB3853001CB0EB /* NetworkDemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 28D7ACF70DDB3853001CB0EB /* NetworkDemoViewController.m */; };
+		C40C63C611FB6166008A66B9 /* FJBlockURLRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */; };
 		C468059B11F76E0100933E3B /* FJImageCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C468059A11F76E0100933E3B /* FJImageCacheManager.m */; };
 		C468064811F7767900933E3B /* NSString+extensions.m in Sources */ = {isa = PBXBuildFile; fileRef = C468064711F7767900933E3B /* NSString+extensions.m */; };
 		C46C182A11F68BE700377E8C /* FJNetworkBlockManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C46C182911F68BE700377E8C /* FJNetworkBlockManager.m */; };
@@ -34,6 +35,8 @@
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* FJNetworkBlockManager_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJNetworkBlockManager_Prefix.pch; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* FJNetworkBlockManager-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "FJNetworkBlockManager-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
+		C40C63C411FB6166008A66B9 /* FJBlockURLRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJBlockURLRequest.h; sourceTree = "<group>"; };
+		C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJBlockURLRequest.m; sourceTree = "<group>"; };
 		C468059911F76E0100933E3B /* FJImageCacheManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = FJImageCacheManager.h; sourceTree = "<group>"; };
 		C468059A11F76E0100933E3B /* FJImageCacheManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = FJImageCacheManager.m; sourceTree = "<group>"; };
 		C468064611F7767900933E3B /* NSString+extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+extensions.h"; sourceTree = "<group>"; };
@@ -59,6 +62,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				C40C63C411FB6166008A66B9 /* FJBlockURLRequest.h */,
+				C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */,
 				1D3623240D0F684500981E51 /* NetworkDemoAppDelegate.h */,
 				1D3623250D0F684500981E51 /* NetworkDemoAppDelegate.m */,
 				28D7ACF60DDB3853001CB0EB /* NetworkDemoViewController.h */,
@@ -149,6 +154,7 @@
 			isa = PBXProject;
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "FJNetworkBlockManager" */;
 			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				en,
@@ -185,6 +191,7 @@
 				C46C182A11F68BE700377E8C /* FJNetworkBlockManager.m in Sources */,
 				C468059B11F76E0100933E3B /* FJImageCacheManager.m in Sources */,
 				C468064811F7767900933E3B /* NSString+extensions.m in Sources */,
+				C40C63C611FB6166008A66B9 /* FJBlockURLRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

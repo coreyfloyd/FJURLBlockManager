@@ -1,260 +1,6 @@
 #import "FJNetworkBlockManager.h"
 
-//#define USE_CHARLES_PROXY
-
-int const maxAttempts = 3;
-
-@interface FJNetworkBlockRequest : NSObject {
-
-    NSURLRequest* request;
-
-    NSThread* connectionThread;
-    NSURLConnection* connection;
-
-    dispatch_queue_t requestQueue;
-    NSMutableData* responseData;
-    BOOL inProcess;
-    int attempt;
-
-    dispatch_queue_t completionQueue;
-    FJNetworkResponseHandler completionBlock;
-    FJNetworkErrorHandler failureBlock;
-    
-}
-@property (nonatomic, retain) NSThread *connectionThread;
-@property (nonatomic) dispatch_queue_t requestQueue;
-@property (nonatomic, retain) NSURLRequest *request;
-@property (nonatomic, retain) NSURLConnection *connection;
-@property (nonatomic) dispatch_queue_t completionQueue;
-@property (nonatomic, copy) FJNetworkResponseHandler completionBlock;
-@property (nonatomic, copy) FJNetworkErrorHandler failureBlock;
-@property (nonatomic, retain) NSMutableData *responseData;
-@property (nonatomic) BOOL inProcess;
-@property (nonatomic) int attempt;
-
-
-- (id)initWithRequest:(NSURLRequest*)req
-     connectionThread:(NSThread*)thread
-      completionQueue:(dispatch_queue_t)queue       //can be nil, defaults to main queue
-      completionBlock:(FJNetworkResponseHandler)completion 
-         failureBlock:(FJNetworkErrorHandler)failure;        
-
-- (void)start;
-- (void)cancel;
-
-
-@end
-
-@implementation FJNetworkBlockRequest
-
-@synthesize connectionThread;
-@synthesize requestQueue;
-@synthesize request;
-@synthesize connection;
-@synthesize completionQueue;
-@synthesize completionBlock;
-@synthesize failureBlock;
-@synthesize inProcess;
-@synthesize attempt;
-@synthesize responseData;
-
-
-
-- (void) dealloc
-{
-    
-    [responseData release];
-    responseData = nil;    
-    [request release];
-    request = nil;
-    [connection release];
-    connection = nil;
-    Block_release(completionBlock);
-    Block_release(failureBlock);
-    dispatch_release(completionQueue);  
-    dispatch_release(requestQueue);
-    [connectionThread release];
-    connectionThread = nil; 
-    [super dealloc];
-}
-
-
-- (id)initWithRequest:(NSURLRequest*)req
-     connectionThread:(NSThread*)thread
-      completionQueue:(dispatch_queue_t)queue 
-      completionBlock:(FJNetworkResponseHandler)completion
-         failureBlock:(FJNetworkErrorHandler)failure{
-    
-    self = [super init];
-    if (self != nil) {
-        
-        self.connectionThread = thread;
-        self.request = req;
-                        
-        NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManagerRequest.%i", [self hash]];
-        self.requestQueue = dispatch_queue_create([queueName UTF8String], NULL);
-        dispatch_retain(requestQueue);
-
-        
-        if(queue == nil)
-            queue = dispatch_get_main_queue();
-        
-        dispatch_retain(queue);
-        self.completionQueue = queue;
-        self.completionBlock = completion;
-        self.failureBlock = failure;
-        self.attempt = 0;
-        self.inProcess = NO;
-    }
-    return self;
-}
-
-- (void)start{
-    
-    dispatch_async(self.requestQueue, ^{
-        
-        if(inProcess){
-            return;
-        }
-        
-        self.inProcess = YES;
-        [self performSelector:@selector(openConnection) onThread:self.connectionThread withObject:nil waitUntilDone:NO];
-
-        
-    });
-}
-
-- (void)openConnection{
-    
-    if(![[NSThread currentThread] isEqual:self.connectionThread]){
-        [self performSelector:@selector(openConnection) onThread:self.connectionThread withObject:nil waitUntilDone:NO];
-        return;
-    }
-    
-    
-    NSLog(@"sending request...");
-
-    self.connection = [[NSURLConnection alloc] initWithRequest:self.request delegate:self];
-    
-    if(connection){
-        
-        dispatch_async(self.requestQueue, ^{
-            
-            self.responseData = [NSMutableData data];
-            
-        });
-        
-    }else{
-        
-		NSLog(@"theConnection is NULL");
-	}
-    
-    
-}
-
-#ifdef USE_CHARLES_PROXY
-
-- (BOOL)connection:(NSURLConnection *)connection canAuthenticateAgainstProtectionSpace:(NSURLProtectionSpace *)protectionSpace {
-    return [protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust];
-}
-
-- (void)connection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge {
-    [challenge.sender useCredential:[NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust] forAuthenticationChallenge:challenge];
-           
-    
-    [challenge.sender continueWithoutCredentialForAuthenticationChallenge:challenge];
-}
-
-#endif
-
-
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    
-    dispatch_async(self.requestQueue, ^{
-
-        [responseData setLength:0];
-        
-    });
-
-}
-
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    
-    dispatch_async(self.requestQueue, ^{
-        
-        [responseData appendData:data];
-        
-    });
-}
-
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-        
-    dispatch_async(self.requestQueue, ^{
-        
-        NSString *failureMessage = [NSString stringWithFormat:@"Connection failed: %@", [error description]];
-        NSLog(@"%@", failureMessage);
-        
-        self.attempt++;
-        
-        if(self.attempt > maxAttempts){
-            
-            self.responseData = nil;
-            
-            dispatch_async(self.completionQueue, ^{
-                
-                self.failureBlock(error);
-                
-                dispatch_async(self.requestQueue, ^{
-                    
-                    self.inProcess = NO;
-                    
-                });
-
-            });
-                        
-        }else{
-            
-            [self start];
-            
-        }
-    });
-}
-
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-            
-    dispatch_async(self.completionQueue, ^{
-        
-        self.completionBlock(self.responseData);
-        
-        dispatch_async(self.requestQueue, ^{
-
-            self.inProcess = NO;
-        });
-        
-    });
-}
-
-
-- (void)cancel{
- 
-    dispatch_async(self.requestQueue, ^{
-        
-        [self.connection cancel];
-        
-        self.responseData = nil;
-
-        self.inProcess = NO;
-    
-    });
-}
-
-
-
-@end
-
-
-
-
+#import "FJBlockURLRequest.h"
 
 static FJNetworkBlockManager* _defaultmanager = nil;
 
@@ -265,10 +11,10 @@ static FJNetworkBlockManager* _defaultmanager = nil;
 @property (nonatomic, retain) NSMutableArray *requests;
 @property (nonatomic, retain) NSMutableDictionary *requestMap;
 
-- (FJNetworkBlockRequest*)nextRequest;
+- (FJBlockURLRequest*)nextRequest;
 - (void)sendNextRequest;
 
-- (void)cleanupRequest:(FJNetworkBlockRequest*)req;
+- (void)cleanupRequest:(FJBlockURLRequest*)req;
 - (void)trimRequests;
 
 @end
@@ -367,7 +113,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         NSLog(@"url to enque: %@", [[req URL] description]);
 
         
-        FJNetworkBlockRequest* request = [[FJNetworkBlockRequest alloc] initWithRequest:req 
+        FJBlockURLRequest* request = [[FJBlockURLRequest alloc] initWithRequest:req 
                                                                            connectionThread:self.requestThread 
                                                                             completionQueue:queue 
                                                                             completionBlock:completionBlock 
@@ -392,7 +138,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
 
         int index = [self.requests indexOfObjectPassingTest:^(id obj, NSUInteger idx, BOOL *stop){
             
-            FJNetworkBlockRequest* request = (FJNetworkBlockRequest*)obj;
+            FJBlockURLRequest* request = (FJBlockURLRequest*)obj;
             
             if([request.request isEqual:req]){
                 *stop = YES;
@@ -405,7 +151,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         
         if(index != NSNotFound){
             
-            FJNetworkBlockRequest* req = [self.requests objectAtIndex:index];
+            FJBlockURLRequest* req = [self.requests objectAtIndex:index];
             [req cancel];
             [self cleanupRequest:req];
             
@@ -421,7 +167,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         
         [self.requests enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop){
             
-            FJNetworkBlockRequest* req = (FJNetworkBlockRequest*)obj;
+            FJBlockURLRequest* req = (FJBlockURLRequest*)obj;
                                     
             dispatch_sync(req.requestQueue, ^{
                 
@@ -452,7 +198,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         
         NSLog(@"number of requests: %i", [self.requests count]);
 
-        FJNetworkBlockRequest* nextRequest = [self nextRequest];
+        FJBlockURLRequest* nextRequest = [self nextRequest];
         
         if(nextRequest == nil)
             return;
@@ -466,11 +212,11 @@ static FJNetworkBlockManager* _defaultmanager = nil;
     });
 }
 
-- (FJNetworkBlockRequest*)nextRequest{
+- (FJBlockURLRequest*)nextRequest{
     
     NSIndexSet* currentRequestIndexes = [self.requests indexesOfObjectsWithOptions:NSEnumerationConcurrent passingTest:^(id obj, NSUInteger idx, BOOL *stop){
         
-        FJNetworkBlockRequest* req = (FJNetworkBlockRequest*)obj;
+        FJBlockURLRequest* req = (FJBlockURLRequest*)obj;
         
         __block BOOL answer = NO;
         
@@ -488,7 +234,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
     if([currentRequestIndexes count] >= self.maxConcurrentRequests)
         return nil;
     
-    FJNetworkBlockRequest* nextRequest = nil;
+    FJBlockURLRequest* nextRequest = nil;
     
     int index = NSNotFound;
     
@@ -496,7 +242,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         
         index = [self.requests indexOfObjectPassingTest:^(id obj, NSUInteger idx, BOOL *stop){
             
-            FJNetworkBlockRequest* req = (FJNetworkBlockRequest*)obj;
+            FJBlockURLRequest* req = (FJBlockURLRequest*)obj;
             
             __block BOOL answer = NO;
 
@@ -515,7 +261,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         
         index = [self.requests indexOfObjectWithOptions:NSEnumerationReverse passingTest:^(id obj, NSUInteger idx, BOOL *stop){
             
-            FJNetworkBlockRequest* req = (FJNetworkBlockRequest*)obj;
+            FJBlockURLRequest* req = (FJBlockURLRequest*)obj;
             
             __block BOOL answer = NO;
             
@@ -548,7 +294,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
     
     if(keyPath == @"inProcess"){
         
-        FJNetworkBlockRequest* req = (FJNetworkBlockRequest*)object;
+        FJBlockURLRequest* req = (FJBlockURLRequest*)object;
 
         dispatch_async(req.requestQueue, ^{
 
@@ -571,7 +317,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
 }
 
 
-- (void)cleanupRequest:(FJNetworkBlockRequest*)req{
+- (void)cleanupRequest:(FJBlockURLRequest*)req{
     
     dispatch_async(self.managerQueue, ^{
 
@@ -595,7 +341,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         
         if([self.requests count] > self.maxRequestsInQueue){
             
-            FJNetworkBlockRequest* requestToKill = nil;
+            FJBlockURLRequest* requestToKill = nil;
             
             if(self.type == FJNetworkBlockManagerQueue)
                 requestToKill = [self.requests lastObject];
