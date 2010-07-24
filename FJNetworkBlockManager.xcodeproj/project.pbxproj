@@ -42,7 +42,7 @@
 		C468064611F7767900933E3B /* NSString+extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+extensions.h"; sourceTree = "<group>"; };
 		C468064711F7767900933E3B /* NSString+extensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+extensions.m"; sourceTree = "<group>"; };
 		C46C182811F68BE700377E8C /* FJNetworkBlockManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJNetworkBlockManager.h; sourceTree = "<group>"; };
-		C46C182911F68BE700377E8C /* FJNetworkBlockManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJNetworkBlockManager.m; sourceTree = "<group>"; };
+		C46C182911F68BE700377E8C /* FJNetworkBlockManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = FJNetworkBlockManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

@@ -2,6 +2,7 @@
 #import "NetworkDemoViewController.h"
 #import "FJNetworkBlockManager.h"
 #import "FJImageCacheManager.h"
+#import "FJBlockURLRequest.h"
 
 //#define USE_IMAGE_MANAGER
 
@@ -74,30 +75,29 @@
     
 #else
     
-    FJNetworkBlockManager* m = [FJNetworkBlockManager defaultManager];
-
-    
     for(NSString* each in a){
         
         NSURL* url = [NSURL URLWithString:each];
         
-        NSURLRequest* req = [NSURLRequest requestWithURL:url];
+        FJBlockURLRequest* req = [FJBlockURLRequest requestWithURL:url];
         
-        [m sendRequest:req 
-        respondOnQueue:dispatch_get_main_queue() 
-       completionBlock:^(NSData* result) {
-           
-           UIImage* i = [UIImage imageWithData:result];
-           
-           NSLog(@"image fetched: %@", [i description]);
-           
-       } 
-          failureBlock:^(NSError *error) {
-              
-              NSLog(@"Image fetch error: %@", [error description]);  
-              
-              
-          }];
+        [req setCompletionBlock:^(NSData* result) {
+            
+            UIImage* i = [UIImage imageWithData:result];
+            
+            NSLog(@"image fetched: %@", [i description]);
+            
+        }]; 
+        
+        [req setFailureBlock:^(NSError *error) {
+            
+            NSLog(@"Image fetch error: %@", [error description]);  
+            
+            
+        }];
+        
+        [req schedule];
+
     }
     
 #endif

@@ -1,31 +1,47 @@
-//
-//  FJBlockURLRequest.m
-//  FJNetworkBlockManager
-//
-//  Created by Corey Floyd on 7/24/10.
-//  Copyright (c) 2010 Flying Jalapeño. All rights reserved.
-//
-
 #import "FJBlockURLRequest.h"
+#import "FJNetworkBlockManager.h"
 
 //#define USE_CHARLES_PROXY
 
-int const maxAttempts = 3;
+@interface FJNetworkBlockManager (FJBlockURLRequest)
+
+- (void)scheduleRequest:(FJBlockURLRequest*)req;
+- (void)cancelRequest:(FJBlockURLRequest*)req;
+
+@property (nonatomic, retain, readonly) NSThread *requestThread;
+
+
+@end
+
+int const kMaxAttempts = 3;
+
+@interface FJBlockURLRequest()
+
+@property (nonatomic, retain) NSThread *connectionThread;
+@property (nonatomic, retain) NSURLConnection *connection;
+
+@property (nonatomic, readwrite) BOOL inProcess; 
+@property (nonatomic, readwrite) int attempt; 
+
+@property (nonatomic, readwrite) dispatch_queue_t workQueue;
+
+- (void)openConnection;
+
+@end
 
 @implementation FJBlockURLRequest
 
-
+@synthesize manager;
 @synthesize connectionThread;
-@synthesize requestQueue;
-@synthesize request;
+@synthesize workQueue;
 @synthesize connection;
-@synthesize completionQueue;
+@synthesize responseQueue;
 @synthesize completionBlock;
 @synthesize failureBlock;
 @synthesize inProcess;
 @synthesize attempt;
 @synthesize responseData;
-
+@synthesize maxAttempts;
 
 
 - (void) dealloc
@@ -33,63 +49,101 @@ int const maxAttempts = 3;
     
     [responseData release];
     responseData = nil;    
-    [request release];
-    request = nil;
+   
     [connection release];
     connection = nil;
     Block_release(completionBlock);
     Block_release(failureBlock);
-    dispatch_release(completionQueue);  
-    dispatch_release(requestQueue);
+    dispatch_release(responseQueue);  
+    dispatch_release(workQueue);
     [connectionThread release];
     connectionThread = nil; 
     [super dealloc];
 }
 
-
-- (id)initWithRequest:(NSURLRequest*)req
-     connectionThread:(NSThread*)thread
-      completionQueue:(dispatch_queue_t)queue 
-      completionBlock:(FJNetworkResponseHandler)completion
-         failureBlock:(FJNetworkErrorHandler)failure{
+- (id)initWithURL:(NSURL*)url{
     
-    self = [super init];
-    if (self != nil) {
-        
-        self.connectionThread = thread;
-        self.request = req;
+    if ((self = [super initWithURL:url])) {
         
         NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManagerRequest.%i", [self hash]];
-        self.requestQueue = dispatch_queue_create([queueName UTF8String], NULL);
-        dispatch_retain(requestQueue);
+        self.workQueue = dispatch_queue_create([queueName UTF8String], NULL);
+        self.maxAttempts = kMaxAttempts;
         
-        
-        if(queue == nil)
-            queue = dispatch_get_main_queue();
-        
-        dispatch_retain(queue);
-        self.completionQueue = queue;
-        self.completionBlock = completion;
-        self.failureBlock = failure;
-        self.attempt = 0;
-        self.inProcess = NO;
     }
-    return self;
+    return self;    
+    
 }
 
-- (void)start{
+- (void)setResponseQueue:(dispatch_queue_t)queue{
     
-    dispatch_async(self.requestQueue, ^{
+    if(responseQueue != queue){
+        
+        dispatch_retain(queue);
+        if(responseQueue)
+            dispatch_release(responseQueue);
+        responseQueue = queue;
+
+    }
+}
+
+- (void)setWorkQueue:(dispatch_queue_t)queue{
+    
+    if(workQueue != queue){
+        
+        dispatch_retain(queue);
+        if(workQueue)
+            dispatch_release(workQueue);
+        workQueue = queue;
+        
+    }
+}
+
+- (void)schedule{
+    
+    [self scheduleWithNetworkManager:[FJNetworkBlockManager defaultManager]];
+    
+}
+
+- (void)scheduleWithNetworkManager:(FJNetworkBlockManager*)networkManager{
+    
+    if(self.manager == nil){
+        
+        self.manager = networkManager;
+    }    
+    
+    [networkManager scheduleRequest:self];
+    
+}
+
+
+
+- (BOOL)start{
+    
+    __block BOOL didStart = YES;
+    
+    dispatch_sync(self.workQueue, ^{
         
         if(inProcess){
+            didStart = NO;
             return;
         }
         
         self.inProcess = YES;
+        self.attempt = 0;
+        
+        self.connectionThread = self.manager.requestThread;
+        
+        if(!self.responseQueue){
+            
+            self.responseQueue = dispatch_get_main_queue();
+            
+        }
+        
         [self performSelector:@selector(openConnection) onThread:self.connectionThread withObject:nil waitUntilDone:NO];
         
-        
     });
+    
+    return didStart;
 }
 
 - (void)openConnection{
@@ -102,11 +156,11 @@ int const maxAttempts = 3;
     
     NSLog(@"sending request...");
     
-    self.connection = [[NSURLConnection alloc] initWithRequest:self.request delegate:self];
+    self.connection = [[NSURLConnection alloc] initWithRequest:self delegate:self];
     
     if(connection){
         
-        dispatch_async(self.requestQueue, ^{
+        dispatch_async(self.workQueue, ^{
             
             self.responseData = [NSMutableData data];
             
@@ -138,7 +192,7 @@ int const maxAttempts = 3;
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     
-    dispatch_async(self.requestQueue, ^{
+    dispatch_async(self.workQueue, ^{
         
         [responseData setLength:0];
         
@@ -148,7 +202,7 @@ int const maxAttempts = 3;
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
     
-    dispatch_async(self.requestQueue, ^{
+    dispatch_async(self.workQueue, ^{
         
         [responseData appendData:data];
         
@@ -157,32 +211,39 @@ int const maxAttempts = 3;
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     
-    dispatch_async(self.requestQueue, ^{
+    dispatch_async(self.workQueue, ^{
         
         NSString *failureMessage = [NSString stringWithFormat:@"Connection failed: %@", [error description]];
         NSLog(@"%@", failureMessage);
         
         self.attempt++;
         
-        if(self.attempt > maxAttempts){
+        if(self.attempt > self.maxAttempts){
             
             self.responseData = nil;
             
-            dispatch_async(self.completionQueue, ^{
+            if(responseQueue && failureBlock){
                 
-                self.failureBlock(error);
-                
-                dispatch_async(self.requestQueue, ^{
+                dispatch_async(self.responseQueue, ^{
                     
-                    self.inProcess = NO;
+                    self.failureBlock(error);
+                    
+                    dispatch_async(self.workQueue, ^{
+                        
+                        self.inProcess = NO;
+                        
+                    });
                     
                 });
                 
-            });
+            }else{
+                
+                self.inProcess = NO;
+            }
             
         }else{
             
-            [self start];
+            [self openConnection];
             
         }
     });
@@ -190,30 +251,46 @@ int const maxAttempts = 3;
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     
-    dispatch_async(self.completionQueue, ^{
+    if(completionBlock){
         
-        self.completionBlock(self.responseData);
-        
-        dispatch_async(self.requestQueue, ^{
+        dispatch_async(self.responseQueue, ^{
             
-            self.inProcess = NO;
+            self.completionBlock(self.responseData);
+            
+            dispatch_async(self.workQueue, ^{
+                
+                self.inProcess = NO;
+            });
+            
         });
         
-    });
+    }else{
+        
+        self.inProcess = NO;
+
+    }
+    
+    
 }
 
 
 - (void)cancel{
     
-    dispatch_async(self.requestQueue, ^{
+    dispatch_async(self.workQueue, ^{
         
-        [self.connection cancel];
+        [self.connection performSelector:@selector(cancel) 
+                                onThread:self.connectionThread 
+                              withObject:nil 
+                           waitUntilDone:NO];
         
         self.responseData = nil;
         
         self.inProcess = NO;
         
     });
+    
+    [self.manager cancelRequest:self];
+    
 }
 
 

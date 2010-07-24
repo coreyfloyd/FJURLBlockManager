@@ -1,12 +1,18 @@
 #import "FJNetworkBlockManager.h"
-
 #import "FJBlockURLRequest.h"
+
+@interface FJBlockURLRequest (FJNetworkBlockManager)
+
+- (BOOL)start; 
+
+@end
+
 
 static FJNetworkBlockManager* _defaultmanager = nil;
 
 @interface FJNetworkBlockManager()
 
-@property (nonatomic, retain) NSThread *requestThread;
+@property (nonatomic, retain, readwrite) NSThread *requestThread;
 @property (nonatomic) dispatch_queue_t managerQueue;
 @property (nonatomic, retain) NSMutableArray *requests;
 @property (nonatomic, retain) NSMutableDictionary *requestMap;
@@ -14,8 +20,9 @@ static FJNetworkBlockManager* _defaultmanager = nil;
 - (FJBlockURLRequest*)nextRequest;
 - (void)sendNextRequest;
 
-- (void)cleanupRequest:(FJBlockURLRequest*)req;
 - (void)trimRequests;
+
+- (void)removeRequest:(FJBlockURLRequest*)req;
 
 @end
 
@@ -30,7 +37,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
 @synthesize requestMap;
 
 @synthesize maxConcurrentRequests;
-@synthesize maxRequestsInQueue;
+@synthesize maxScheduledRequests;
 
 @synthesize idle;
 
@@ -68,7 +75,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         self.requests = [NSMutableArray arrayWithCapacity:10];
         self.requestMap = [NSMutableDictionary dictionaryWithCapacity:10];
         self.type = FJNetworkBlockManagerQueue;
-        self.maxRequestsInQueue = 100;
+        self.maxScheduledRequests = 100;
         self.maxConcurrentRequests = 2;
         
         NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManager.%i", [self hash]];
@@ -103,85 +110,17 @@ static FJNetworkBlockManager* _defaultmanager = nil;
 
 
 
-- (void) sendRequest:(NSURLRequest*)req 
-      respondOnQueue:(dispatch_queue_t)queue 
-     completionBlock:(FJNetworkResponseHandler)completionBlock 
-        failureBlock:(FJNetworkErrorHandler)errorBlock{
+- (void)scheduleRequest:(FJBlockURLRequest*)req{
     
     dispatch_async(self.managerQueue, ^{
         
-        NSLog(@"url to enque: %@", [[req URL] description]);
-
+        NSLog(@"url to schedule: %@", [[req URL] description]);
         
-        FJBlockURLRequest* request = [[FJBlockURLRequest alloc] initWithRequest:req 
-                                                                           connectionThread:self.requestThread 
-                                                                            completionQueue:queue 
-                                                                            completionBlock:completionBlock 
-                                                                               failureBlock:errorBlock];
-        
-        [self.requests addObject:request];
-        [self.requestMap setObject:request forKey:request.request];
+        [self.requests addObject:req];
         
         [self trimRequests];
-
+        
         [self sendNextRequest];
-        
-    });
-            
-        
-}
-
-
-- (void)cancelRequest:(NSURLRequest*)req{
-    
-    dispatch_async(self.managerQueue, ^{
-
-        int index = [self.requests indexOfObjectPassingTest:^(id obj, NSUInteger idx, BOOL *stop){
-            
-            FJBlockURLRequest* request = (FJBlockURLRequest*)obj;
-            
-            if([request.request isEqual:req]){
-                *stop = YES;
-                return YES;
-            }
-            
-            return NO;
-        }];
-        
-        
-        if(index != NSNotFound){
-            
-            FJBlockURLRequest* req = [self.requests objectAtIndex:index];
-            [req cancel];
-            [self cleanupRequest:req];
-            
-        }
-        
-    });
-}
-
-
-- (void)cancelAllRequests{
-    
-    dispatch_async(self.managerQueue, ^{
-        
-        [self.requests enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop){
-            
-            FJBlockURLRequest* req = (FJBlockURLRequest*)obj;
-                                    
-            dispatch_sync(req.requestQueue, ^{
-                
-                if(req.inProcess)
-                    [req removeObserver:self forKeyPath:@"inProcess"];
-                
-            });
-                        
-            [req cancel];
-            
-        }];
-        
-        [self.requests removeAllObjects];
-        [self.requestMap removeAllObjects];
         
     });
 }
@@ -203,7 +142,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         if(nextRequest == nil)
             return;
         
-        NSLog(@"url to fetch: %@", [[[nextRequest request] URL] description]);
+        NSLog(@"url to fetch: %@", [[nextRequest URL] description]);
 
         
         [nextRequest start];
@@ -220,7 +159,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         
         __block BOOL answer = NO;
         
-        dispatch_sync(req.requestQueue, ^{
+        dispatch_sync(req.workQueue, ^{
         
             answer = req.inProcess;
             
@@ -246,7 +185,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
             
             __block BOOL answer = NO;
 
-            dispatch_sync(req.requestQueue, ^{
+            dispatch_sync(req.workQueue, ^{
                 
                 answer = !req.inProcess;
                 
@@ -265,7 +204,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
             
             __block BOOL answer = NO;
             
-            dispatch_sync(req.requestQueue, ^{
+            dispatch_sync(req.workQueue, ^{
                 
                 answer = !req.inProcess;
                 
@@ -296,13 +235,15 @@ static FJNetworkBlockManager* _defaultmanager = nil;
         
         FJBlockURLRequest* req = (FJBlockURLRequest*)object;
 
-        dispatch_async(req.requestQueue, ^{
+        dispatch_async(req.workQueue, ^{
 
             if(req.inProcess == NO){
                 
+                [req removeObserver:self forKeyPath:@"inProcess"];
+
                 dispatch_async(self.managerQueue, ^{
                     
-                    [self cleanupRequest:req];
+                    [self.requests removeObject:req];
                     [self sendNextRequest];
                     
                 });
@@ -317,29 +258,12 @@ static FJNetworkBlockManager* _defaultmanager = nil;
 }
 
 
-- (void)cleanupRequest:(FJBlockURLRequest*)req{
-    
-    dispatch_async(self.managerQueue, ^{
-
-        dispatch_sync(req.requestQueue, ^{
-
-        if(req.inProcess)
-            [req removeObserver:self forKeyPath:@"inProcess"];
-            
-        });
-         
-        [self.requests removeObject:req];
-        [self.requestMap removeObjectForKey:req.request];
-        
-    });
-}
-
 
 - (void)trimRequests{
     
     dispatch_async(self.managerQueue, ^{
         
-        if([self.requests count] > self.maxRequestsInQueue){
+        if([self.requests count] > self.maxScheduledRequests){
             
             FJBlockURLRequest* requestToKill = nil;
             
@@ -348,11 +272,85 @@ static FJNetworkBlockManager* _defaultmanager = nil;
             else
                 requestToKill = [self.requests objectAtIndex:0];
             
-            [requestToKill performSelector:@selector(cancel) onThread:self.requestThread withObject:nil waitUntilDone:YES];
-            [self cleanupRequest:requestToKill];
+            dispatch_async(requestToKill.workQueue, ^{
+                
+                [requestToKill cancel];
+            });
+            
         }
+    });
+}
+
+//always called by request
+- (void)cancelRequest:(FJBlockURLRequest*)req{
+    
+    dispatch_async(self.managerQueue, ^{
+        
+        int index = [self.requests indexOfObjectPassingTest:^(id obj, NSUInteger idx, BOOL *stop){
+            
+            FJBlockURLRequest* request = (FJBlockURLRequest*)obj;
+            
+            if([request isEqual:req]){
+                *stop = YES;
+                return YES;
+            }
+            
+            return NO;
+        }];
+        
+        
+        if(index != NSNotFound){
+            
+            [self removeRequest:[self.requests objectAtIndex:index]];
+            
+        }
+    });
+}
+
+
+- (void)cancelAllRequests{
+    
+    dispatch_async(self.managerQueue, ^{
+        
+        [self.requests enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop){
+            
+            FJBlockURLRequest* req = (FJBlockURLRequest*)obj;
+            
+            dispatch_sync(req.workQueue, ^{
+                
+                if(req.inProcess)
+                    [req removeObserver:self forKeyPath:@"inProcess"];
+                
+            });
+            
+            [req cancel];
+            
+        }];
+        
+        [self.requests removeAllObjects];
         
     });
+}
+
+//always called internally
+- (void)removeRequest:(FJBlockURLRequest*)req{
+    
+    dispatch_async(self.managerQueue, ^{
+        
+        dispatch_sync(req.workQueue, ^{
+            
+            if(req.inProcess)
+                [req removeObserver:self forKeyPath:@"inProcess"];
+            
+        });
+        
+        [req cancel];
+        
+        [self.requests removeObject:req];
+        
+        
+    });
+    
 }
 
 @end

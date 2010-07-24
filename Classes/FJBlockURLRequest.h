@@ -7,46 +7,48 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "FJNetworkBlockManager.h"
 
-@interface FJBlockURLRequest : NSObject {
+@class FJNetworkBlockManager;
 
-    NSURLRequest* request;
-    
-    NSThread* connectionThread;
-    NSURLConnection* connection;
-    
-    dispatch_queue_t requestQueue;
-    NSMutableData* responseData;
-    BOOL inProcess;
-    int attempt;
-    
-    dispatch_queue_t completionQueue;
-    FJNetworkResponseHandler completionBlock;
-    FJNetworkErrorHandler failureBlock;
+typedef void (^FJNetworkResponseHandler)(NSData* response);
+typedef void (^FJNetworkErrorHandler)(NSError* error);
 
+
+@interface FJBlockURLRequest : NSURLRequest {
+    
+    
 }
-@property (nonatomic, retain) NSThread *connectionThread;
-@property (nonatomic) dispatch_queue_t requestQueue;
-@property (nonatomic, retain) NSURLRequest *request;
-@property (nonatomic, retain) NSURLConnection *connection;
-@property (nonatomic) dispatch_queue_t completionQueue;
-@property (nonatomic, copy) FJNetworkResponseHandler completionBlock;
-@property (nonatomic, copy) FJNetworkErrorHandler failureBlock;
-@property (nonatomic, retain) NSMutableData *responseData;
-@property (nonatomic) BOOL inProcess;
-@property (nonatomic) int attempt;
 
+//Use
+- (void)schedule;
+- (void)scheduleWithNetworkManager:(FJNetworkBlockManager*)networkManager;
 
-
-- (id)initWithRequest:(NSURLRequest*)req
-     connectionThread:(NSThread*)thread
-      completionQueue:(dispatch_queue_t)queue       //can be nil, defaults to main queue
-      completionBlock:(FJNetworkResponseHandler)completion 
-         failureBlock:(FJNetworkErrorHandler)failure;        
-
-- (void)start;
 - (void)cancel;
+
+
+//Config
+@property (nonatomic, copy) FJNetworkResponseHandler completionBlock; //called on success
+@property (nonatomic, copy) FJNetworkErrorHandler failureBlock; //called on failure, when attempt = maxAttempts
+
+@property (nonatomic) dispatch_queue_t responseQueue; //queue that blocaks are called on, default = main queue
+
+@property (nonatomic, retain) NSMutableData *responseData; //result
+
+@property (nonatomic) int maxAttempts; //how many retries, default = 3;
+
+@property (nonatomic, assign) FJNetworkBlockManager *manager; //should this run on a specific manager, defualt = defaultManager
+
+
+//info
+@property (nonatomic, readonly) BOOL inProcess; //are we working?
+@property (nonatomic, readonly) int attempt; //is this the first attempt?
+
+
+
+
+
+
+@property (nonatomic, readonly) dispatch_queue_t workQueue; //need to make some changes, use this queue
 
 
 
