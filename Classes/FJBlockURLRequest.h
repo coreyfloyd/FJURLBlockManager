@@ -14,7 +14,7 @@ typedef void (^FJNetworkResponseHandler)(NSData* response);
 typedef void (^FJNetworkErrorHandler)(NSError* error);
 
 
-@interface FJBlockURLRequest : NSURLRequest {
+@interface FJBlockURLRequest : NSMutableURLRequest {
     
     
 }
