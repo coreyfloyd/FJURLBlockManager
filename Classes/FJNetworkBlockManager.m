@@ -1,5 +1,7 @@
 #import "FJNetworkBlockManager.h"
 
+//#define USE_CHARLES_PROXY
+
 int const maxAttempts = 3;
 
 @interface FJNetworkBlockRequest : NSObject {
@@ -150,6 +152,22 @@ int const maxAttempts = 3;
     
 }
 
+#ifdef USE_CHARLES_PROXY
+
+- (BOOL)connection:(NSURLConnection *)connection canAuthenticateAgainstProtectionSpace:(NSURLProtectionSpace *)protectionSpace {
+    return [protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust];
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge {
+    [challenge.sender useCredential:[NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust] forAuthenticationChallenge:challenge];
+           
+    
+    [challenge.sender continueWithoutCredentialForAuthenticationChallenge:challenge];
+}
+
+#endif
+
+
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     
     dispatch_async(self.requestQueue, ^{
@@ -206,7 +224,7 @@ int const maxAttempts = 3;
             
     dispatch_async(self.completionQueue, ^{
         
-        self.completionBlock([[self.responseData copy] autorelease]);
+        self.completionBlock(self.responseData);
         
         dispatch_async(self.requestQueue, ^{
 

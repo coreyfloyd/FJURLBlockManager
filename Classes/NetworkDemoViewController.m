@@ -3,6 +3,8 @@
 #import "FJNetworkBlockManager.h"
 #import "FJImageCacheManager.h"
 
+//#define USE_IMAGE_MANAGER
+
 @implementation NetworkDemoViewController
 
 
@@ -35,9 +37,7 @@
 - (void)viewWillAppear:(BOOL)animated{
     
     
-    FJNetworkBlockManager* m = [FJNetworkBlockManager defaultManager];
 
-    FJImageCacheManager* i = [FJImageCacheManager defaultManager];
     
 
     NSArray* a = [NSArray arrayWithObjects:
@@ -46,6 +46,11 @@
                   @"http://farm5.static.flickr.com/4101/4809430770_af074e7697.jpg",
                   @"http://farm5.static.flickr.com/4095/4808918950_8fd09bd293.jpg",
                   nil];
+    
+    
+#ifdef USE_IMAGE_MANAGER
+    
+    FJImageCacheManager* i = [FJImageCacheManager defaultManager];
     
     for(NSString* each in a){
         
@@ -67,8 +72,11 @@
     
     }
     
+#else
     
-    /*
+    FJNetworkBlockManager* m = [FJNetworkBlockManager defaultManager];
+
+    
     for(NSString* each in a){
         
         NSURL* url = [NSURL URLWithString:each];
@@ -90,13 +98,9 @@
               
               
           }];
-        
-        
     }
-     
-     */
     
-    
+#endif
 }
 
 
