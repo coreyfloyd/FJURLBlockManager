@@ -18,14 +18,14 @@
 		C40C63C611FB6166008A66B9 /* FJBlockURLRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */; };
 		C468059B11F76E0100933E3B /* FJImageCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C468059A11F76E0100933E3B /* FJImageCacheManager.m */; };
 		C468064811F7767900933E3B /* NSString+extensions.m in Sources */ = {isa = PBXBuildFile; fileRef = C468064711F7767900933E3B /* NSString+extensions.m */; };
-		C46C182A11F68BE700377E8C /* FJNetworkBlockManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C46C182911F68BE700377E8C /* FJNetworkBlockManager.m */; };
+		C46C182A11F68BE700377E8C /* FJBlockURLManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C46C182911F68BE700377E8C /* FJBlockURLManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D3623240D0F684500981E51 /* NetworkDemoAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkDemoAppDelegate.h; sourceTree = "<group>"; };
 		1D3623250D0F684500981E51 /* NetworkDemoAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NetworkDemoAppDelegate.m; sourceTree = "<group>"; };
-		1D6058910D05DD3D006BFB54 /* FJNetworkBlockManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FJNetworkBlockManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1D6058910D05DD3D006BFB54 /* FJBlockURLManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FJBlockURLManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		288765A40DF7441C002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		2899E5210DE3E06400AC0155 /* FJNetworkManagerViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = FJNetworkManagerViewController.xib; sourceTree = "<group>"; };
@@ -33,16 +33,16 @@
 		28D7ACF60DDB3853001CB0EB /* NetworkDemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkDemoViewController.h; sourceTree = "<group>"; };
 		28D7ACF70DDB3853001CB0EB /* NetworkDemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NetworkDemoViewController.m; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		32CA4F630368D1EE00C91783 /* FJNetworkBlockManager_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJNetworkBlockManager_Prefix.pch; sourceTree = "<group>"; };
-		8D1107310486CEB800E47090 /* FJNetworkBlockManager-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "FJNetworkBlockManager-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
+		32CA4F630368D1EE00C91783 /* FJBlockURLManager_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJBlockURLManager_Prefix.pch; sourceTree = "<group>"; };
+		8D1107310486CEB800E47090 /* FJBlockURLManager-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "FJBlockURLManager-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 		C40C63C411FB6166008A66B9 /* FJBlockURLRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJBlockURLRequest.h; sourceTree = "<group>"; };
 		C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJBlockURLRequest.m; sourceTree = "<group>"; };
 		C468059911F76E0100933E3B /* FJImageCacheManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = FJImageCacheManager.h; sourceTree = "<group>"; };
 		C468059A11F76E0100933E3B /* FJImageCacheManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = FJImageCacheManager.m; sourceTree = "<group>"; };
 		C468064611F7767900933E3B /* NSString+extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+extensions.h"; sourceTree = "<group>"; };
 		C468064711F7767900933E3B /* NSString+extensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+extensions.m"; sourceTree = "<group>"; };
-		C46C182811F68BE700377E8C /* FJNetworkBlockManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJNetworkBlockManager.h; sourceTree = "<group>"; };
-		C46C182911F68BE700377E8C /* FJNetworkBlockManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = FJNetworkBlockManager.m; sourceTree = "<group>"; };
+		C46C182811F68BE700377E8C /* FJBlockURLManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJBlockURLManager.h; sourceTree = "<group>"; };
+		C46C182911F68BE700377E8C /* FJBlockURLManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = FJBlockURLManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,14 +62,14 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				C40C63C411FB6166008A66B9 /* FJBlockURLRequest.h */,
-				C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */,
 				1D3623240D0F684500981E51 /* NetworkDemoAppDelegate.h */,
 				1D3623250D0F684500981E51 /* NetworkDemoAppDelegate.m */,
 				28D7ACF60DDB3853001CB0EB /* NetworkDemoViewController.h */,
 				28D7ACF70DDB3853001CB0EB /* NetworkDemoViewController.m */,
-				C46C182811F68BE700377E8C /* FJNetworkBlockManager.h */,
-				C46C182911F68BE700377E8C /* FJNetworkBlockManager.m */,
+				C40C63C411FB6166008A66B9 /* FJBlockURLRequest.h */,
+				C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */,
+				C46C182811F68BE700377E8C /* FJBlockURLManager.h */,
+				C46C182911F68BE700377E8C /* FJBlockURLManager.m */,
 				C468059911F76E0100933E3B /* FJImageCacheManager.h */,
 				C468059A11F76E0100933E3B /* FJImageCacheManager.m */,
 				C468064611F7767900933E3B /* NSString+extensions.h */,
@@ -81,7 +81,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1D6058910D05DD3D006BFB54 /* FJNetworkBlockManager.app */,
+				1D6058910D05DD3D006BFB54 /* FJBlockURLManager.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -101,7 +101,7 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
-				32CA4F630368D1EE00C91783 /* FJNetworkBlockManager_Prefix.pch */,
+				32CA4F630368D1EE00C91783 /* FJBlockURLManager_Prefix.pch */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
 			);
 			name = "Other Sources";
@@ -112,7 +112,7 @@
 			children = (
 				2899E5210DE3E06400AC0155 /* FJNetworkManagerViewController.xib */,
 				28AD733E0D9D9553002E5188 /* MainWindow.xib */,
-				8D1107310486CEB800E47090 /* FJNetworkBlockManager-Info.plist */,
+				8D1107310486CEB800E47090 /* FJBlockURLManager-Info.plist */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -130,9 +130,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1D6058900D05DD3D006BFB54 /* FJNetworkBlockManager */ = {
+		1D6058900D05DD3D006BFB54 /* FJBlockURLManager */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "FJNetworkBlockManager" */;
+			buildConfigurationList = 1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "FJBlockURLManager" */;
 			buildPhases = (
 				1D60588D0D05DD3D006BFB54 /* Resources */,
 				1D60588E0D05DD3D006BFB54 /* Sources */,
@@ -142,9 +142,9 @@
 			);
 			dependencies = (
 			);
-			name = FJNetworkBlockManager;
+			name = FJBlockURLManager;
 			productName = FJNetworkManager;
-			productReference = 1D6058910D05DD3D006BFB54 /* FJNetworkBlockManager.app */;
+			productReference = 1D6058910D05DD3D006BFB54 /* FJBlockURLManager.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -152,9 +152,8 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
-			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "FJNetworkBlockManager" */;
+			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "FJBlockURLManager" */;
 			compatibilityVersion = "Xcode 3.1";
-			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				en,
@@ -163,7 +162,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1D6058900D05DD3D006BFB54 /* FJNetworkBlockManager */,
+				1D6058900D05DD3D006BFB54 /* FJBlockURLManager */,
 			);
 		};
 /* End PBXProject section */
@@ -188,7 +187,7 @@
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				1D3623260D0F684500981E51 /* NetworkDemoAppDelegate.m in Sources */,
 				28D7ACF80DDB3853001CB0EB /* NetworkDemoViewController.m in Sources */,
-				C46C182A11F68BE700377E8C /* FJNetworkBlockManager.m in Sources */,
+				C46C182A11F68BE700377E8C /* FJBlockURLManager.m in Sources */,
 				C468059B11F76E0100933E3B /* FJImageCacheManager.m in Sources */,
 				C468064811F7767900933E3B /* NSString+extensions.m in Sources */,
 				C40C63C611FB6166008A66B9 /* FJBlockURLRequest.m in Sources */,
@@ -206,10 +205,10 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = FJNetworkBlockManager_Prefix.pch;
+				GCC_PREFIX_HEADER = FJBlockURLManager_Prefix.pch;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				INFOPLIST_FILE = "FJNetworkBlockManager-Info.plist";
-				PRODUCT_NAME = FJNetworkBlockManager;
+				INFOPLIST_FILE = "FJBlockURLManager-Info.plist";
+				PRODUCT_NAME = FJBlockURLManager;
 			};
 			name = Debug;
 		};
@@ -219,9 +218,9 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = FJNetworkBlockManager_Prefix.pch;
-				INFOPLIST_FILE = "FJNetworkBlockManager-Info.plist";
-				PRODUCT_NAME = FJNetworkBlockManager;
+				GCC_PREFIX_HEADER = FJBlockURLManager_Prefix.pch;
+				INFOPLIST_FILE = "FJBlockURLManager-Info.plist";
+				PRODUCT_NAME = FJBlockURLManager;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -258,7 +257,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "FJNetworkBlockManager" */ = {
+		1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "FJBlockURLManager" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1D6058940D05DD3E006BFB54 /* Debug */,
@@ -267,7 +266,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C01FCF4E08A954540054247B /* Build configuration list for PBXProject "FJNetworkBlockManager" */ = {
+		C01FCF4E08A954540054247B /* Build configuration list for PBXProject "FJBlockURLManager" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C01FCF4F08A954540054247B /* Debug */,

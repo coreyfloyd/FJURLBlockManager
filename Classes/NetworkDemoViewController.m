@@ -1,6 +1,6 @@
 
 #import "NetworkDemoViewController.h"
-#import "FJNetworkBlockManager.h"
+#import "FJBlockURLManager.h"
 #import "FJImageCacheManager.h"
 #import "FJBlockURLRequest.h"
 

@@ -8,7 +8,7 @@ typedef enum  {
 } FJNetworkBlockManagerType;
 
 
-@interface FJNetworkBlockManager : NSObject {
+@interface FJBlockURLManager : NSObject {
     
     dispatch_queue_t managerQueue;
     FJNetworkBlockManagerType type;
@@ -23,7 +23,7 @@ typedef enum  {
 @property (nonatomic) BOOL idle;                            //KVO to know when ALL work is complete, if so inclined
 
 
-+ (FJNetworkBlockManager*)defaultManager;
++ (FJBlockURLManager*)defaultManager;
 
 - (void)cancelAllRequests;
 

@@ -1,6 +1,6 @@
 
 #import <Foundation/Foundation.h>
-#import "FJNetworkBlockManager.h"
+#import "FJBlockURLManager.h"
 
 typedef void (^FJImageResponseHandler)(UIImage* image);
 typedef void (^FJImageErrorHandler)(NSError* error);
@@ -9,7 +9,7 @@ typedef void (^FJImageErrorHandler)(NSError* error);
 @interface FJImageCacheManager : NSObject {
     
     dispatch_queue_t managerQueue;
-    FJNetworkBlockManager* networkManager;
+    FJBlockURLManager* networkManager;
     NSMutableDictionary* responses;
     NSMutableDictionary* requests;
 
@@ -17,7 +17,7 @@ typedef void (^FJImageErrorHandler)(NSError* error);
 }
 + (FJImageCacheManager*)defaultManager;                         //uses the default manager queue
 - (id)init;                                                     //uses the default manager queue
-- (id)initWithNetworkManager:(FJNetworkBlockManager*)manager;   //provide a specific manager
+- (id)initWithNetworkManager:(FJBlockURLManager*)manager;   //provide a specific manager
 
 
 - (void)fetchImageAtURL:(NSURL*)imageURL                            //what do you want?

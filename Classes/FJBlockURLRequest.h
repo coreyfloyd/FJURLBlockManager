@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@class FJNetworkBlockManager;
+@class FJBlockURLManager;
 
 typedef void (^FJNetworkResponseHandler)(NSData* response);
 typedef void (^FJNetworkErrorHandler)(NSError* error);
@@ -21,7 +21,7 @@ typedef void (^FJNetworkErrorHandler)(NSError* error);
 
 //Use
 - (void)schedule;
-- (void)scheduleWithNetworkManager:(FJNetworkBlockManager*)networkManager;
+- (void)scheduleWithNetworkManager:(FJBlockURLManager*)networkManager;
 
 - (void)cancel;
 
@@ -36,7 +36,7 @@ typedef void (^FJNetworkErrorHandler)(NSError* error);
 
 @property (nonatomic) int maxAttempts; //how many retries, default = 3;
 
-@property (nonatomic, assign) FJNetworkBlockManager *manager; //should this run on a specific manager, defualt = defaultManager
+@property (nonatomic, assign) FJBlockURLManager *manager; //should this run on a specific manager, defualt = defaultManager
 
 
 //info

@@ -131,7 +131,7 @@ static FJImageCacheManager* _defaultManager = nil;
 @interface FJImageCacheManager()
 
 @property (nonatomic) dispatch_queue_t managerQueue;
-@property (nonatomic, retain) FJNetworkBlockManager *networkManager;
+@property (nonatomic, retain) FJBlockURLManager *networkManager;
 @property (nonatomic, retain) NSMutableDictionary *responses;
 @property (nonatomic, retain) NSMutableDictionary *requests;
 
@@ -174,13 +174,13 @@ static FJImageCacheManager* _defaultManager = nil;
 +(FJImageCacheManager*)defaultManager{
     
     if(_defaultManager == nil){
-        _defaultManager = [[FJImageCacheManager alloc] initWithNetworkManager:[FJNetworkBlockManager defaultManager]];
+        _defaultManager = [[FJImageCacheManager alloc] initWithNetworkManager:[FJBlockURLManager defaultManager]];
     }
     
     return _defaultManager;
 }
 
-- (id)initWithNetworkManager:(FJNetworkBlockManager*)manager{
+- (id)initWithNetworkManager:(FJBlockURLManager*)manager{
     
     self = [super init];
     if (self != nil) {
@@ -188,7 +188,7 @@ static FJImageCacheManager* _defaultManager = nil;
         NSString* queueName = [NSString stringWithFormat:@"com.FJImageCacheManager.%i", [self hash]];
         self.managerQueue = dispatch_queue_create([queueName UTF8String], NULL);\
         dispatch_retain(managerQueue);
-        self.networkManager = [[[FJNetworkBlockManager alloc] init] autorelease]; 
+        self.networkManager = [[[FJBlockURLManager alloc] init] autorelease]; 
         self.responses = [NSMutableDictionary dictionaryWithCapacity:10];
         self.requests = [NSMutableDictionary dictionaryWithCapacity:10];
         
@@ -200,7 +200,7 @@ static FJImageCacheManager* _defaultManager = nil;
 
 - (id) init
 {
-    return [self initWithNetworkManager:[FJNetworkBlockManager defaultManager]];
+    return [self initWithNetworkManager:[FJBlockURLManager defaultManager]];
 }
 
 - (void)fetchImageAtURL:(NSURL*)imageURL                            

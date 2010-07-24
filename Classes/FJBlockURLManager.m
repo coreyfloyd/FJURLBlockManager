@@ -1,4 +1,4 @@
-#import "FJNetworkBlockManager.h"
+#import "FJBlockURLManager.h"
 #import "FJBlockURLRequest.h"
 
 @interface FJBlockURLRequest (FJNetworkBlockManager)
@@ -8,9 +8,9 @@
 @end
 
 
-static FJNetworkBlockManager* _defaultmanager = nil;
+static FJBlockURLManager* _defaultmanager = nil;
 
-@interface FJNetworkBlockManager()
+@interface FJBlockURLManager()
 
 @property (nonatomic, retain, readwrite) NSThread *requestThread;
 @property (nonatomic) dispatch_queue_t managerQueue;
@@ -27,7 +27,7 @@ static FJNetworkBlockManager* _defaultmanager = nil;
 @end
 
 
-@implementation FJNetworkBlockManager
+@implementation FJBlockURLManager
 
 @synthesize requestThread;
 @synthesize managerQueue;
@@ -57,10 +57,10 @@ static FJNetworkBlockManager* _defaultmanager = nil;
 
 
 
-+(FJNetworkBlockManager*)defaultManager{
++(FJBlockURLManager*)defaultManager{
     
     if(_defaultmanager == nil){
-        _defaultmanager = [[FJNetworkBlockManager alloc] init];
+        _defaultmanager = [[FJBlockURLManager alloc] init];
     }
     
     return _defaultmanager;

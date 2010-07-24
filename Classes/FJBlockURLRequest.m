@@ -1,9 +1,9 @@
 #import "FJBlockURLRequest.h"
-#import "FJNetworkBlockManager.h"
+#import "FJBlockURLManager.h"
 
 //#define USE_CHARLES_PROXY
 
-@interface FJNetworkBlockManager (FJBlockURLRequest)
+@interface FJBlockURLManager (FJBlockURLRequest)
 
 - (void)scheduleRequest:(FJBlockURLRequest*)req;
 - (void)cancelRequest:(FJBlockURLRequest*)req;
@@ -100,11 +100,11 @@ int const kMaxAttempts = 3;
 
 - (void)schedule{
     
-    [self scheduleWithNetworkManager:[FJNetworkBlockManager defaultManager]];
+    [self scheduleWithNetworkManager:[FJBlockURLManager defaultManager]];
     
 }
 
-- (void)scheduleWithNetworkManager:(FJNetworkBlockManager*)networkManager{
+- (void)scheduleWithNetworkManager:(FJBlockURLManager*)networkManager{
     
     if(self.manager == nil){
         
