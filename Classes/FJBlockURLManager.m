@@ -14,12 +14,13 @@ static NSThread* _sharedThread = nil;
 
 @interface FJBlockURLManager()
 
-@property (nonatomic) dispatch_queue_t managerQueue;
+@property (nonatomic) dispatch_queue_t managerQueue; 
+@property (nonatomic) dispatch_queue_t configurationQueue; 
+@property (nonatomic) dispatch_queue_t workQueue;
 @property (nonatomic, retain) NSMutableArray *requests;
 @property (nonatomic, retain) NSMutableArray *activeRequests;
 @property (nonatomic, retain) NSMutableDictionary *requestMap;
-@property (nonatomic, readwrite) BOOL suspended;             
-
+@property (nonatomic, readwrite) BOOL idle;                            
 
 - (FJBlockURLRequest*)nextRequest;
 - (void)sendNextRequest;
@@ -33,7 +34,10 @@ static NSThread* _sharedThread = nil;
 
 @implementation FJBlockURLManager
 
+@synthesize workQueue;
+@synthesize configurationQueue;
 @synthesize managerQueue;
+
 @synthesize type;
 
 @synthesize requests;
@@ -45,7 +49,8 @@ static NSThread* _sharedThread = nil;
 
 @synthesize idle;
 
-
+#pragma mark -
+#pragma mark Initialization / Deallocation
 
 - (void) dealloc
 {
@@ -55,6 +60,8 @@ static NSThread* _sharedThread = nil;
     activeRequests = nil;
     [requests release];
     requests = nil;
+    dispatch_release(workQueue);
+    dispatch_release(configurationQueue);
     dispatch_release(managerQueue);
     [super dealloc];
 }
@@ -102,26 +109,76 @@ static NSThread* _sharedThread = nil;
     self = [super init];
     if (self != nil) {
                 
+        NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManager.%i", [self hash]];
+        self.managerQueue = dispatch_queue_create([queueName UTF8String], NULL);
+        dispatch_retain(managerQueue);
+        
+        queueName = [NSString stringWithFormat:@"com.FJNetworkManager.%i.workQueue", [self hash]];
+        self.workQueue = dispatch_queue_create([queueName UTF8String], NULL);
+        dispatch_retain(workQueue);
+        dispatch_set_target_queue(self.workQueue, self.managerQueue);  
+        
+        queueName = [NSString stringWithFormat:@"com.FJNetworkManager.%i.configurationQueue", [self hash]];
+        self.configurationQueue = dispatch_queue_create([queueName UTF8String], NULL);
+        dispatch_retain(configurationQueue);
+        dispatch_set_target_queue(self.configurationQueue, self.managerQueue);  
+        
         self.requests = [NSMutableArray arrayWithCapacity:10];
         self.requestMap = [NSMutableDictionary dictionaryWithCapacity:10];
         self.type = FJNetworkBlockManagerQueue;
         self.maxScheduledRequests = 100;
         self.maxConcurrentRequests = 2;
         
-        NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManager.%i", [self hash]];
-        self.managerQueue = dispatch_queue_create([queueName UTF8String], NULL);
-        dispatch_retain(managerQueue);
-
+               
     }
     return self;
 }
 
+#pragma mark -
+#pragma mark Accssors
 
+- (void)setType:(FJNetworkBlockManagerType)aType{
+    
+    dispatch_suspend(self.workQueue);
+    
+    dispatch_async(self.configurationQueue, ^{
+        
+        type = aType;
+        
+        dispatch_resume(self.workQueue);
+    });
+}
 
+- (void)setMaxConcurrentRequests:(NSInteger)value{
+    
+    dispatch_suspend(self.workQueue);
+    
+    dispatch_async(self.configurationQueue, ^{
+        
+        maxConcurrentRequests = value;
+        
+        dispatch_resume(self.workQueue);
+    });
+    
+}
+                   
+                
+- (void)setMaxScheduledRequests:(NSInteger)value{
+    
+    dispatch_suspend(self.workQueue);
+    
+    dispatch_async(self.configurationQueue, ^{
+        
+        maxScheduledRequests = value;
+        
+        dispatch_resume(self.workQueue);
+    });
+}
+                   
 
 - (void)scheduleRequest:(FJBlockURLRequest*)req{
     
-    dispatch_async(self.managerQueue, ^{
+    dispatch_async(self.workQueue, ^{
         
         NSLog(@"url to schedule: %@", [[req URL] description]);
         
@@ -136,13 +193,27 @@ static NSThread* _sharedThread = nil;
     });
 }
 
+#pragma mark -
+#pragma Suspend / Resume
+
+
+- (void)suspend{
+    
+    dispatch_suspend(self.workQueue);
+    
+}
+- (void)resume{
+    
+    dispatch_resume(self.workQueue);
+    
+}
+
+#pragma mark -
+#pragma mark Send Request
 
 - (void)sendNextRequest{
     
-    dispatch_async(self.managerQueue, ^{
-        
-        if(suspended)
-            return;
+    dispatch_async(self.workQueue, ^{
         
         if([self.requests count] == 0){
             self.idle = YES;
@@ -255,7 +326,7 @@ static NSThread* _sharedThread = nil;
                 
                 [req removeObserver:self forKeyPath:@"isFinished"];
 
-                dispatch_async(self.managerQueue, ^{
+                dispatch_async(self.workQueue, ^{
                     
                     [self.requests removeObject:req];
                     [self sendNextRequest];
@@ -275,7 +346,7 @@ static NSThread* _sharedThread = nil;
 
 - (void)trimRequests{
     
-    dispatch_async(self.managerQueue, ^{
+    dispatch_async(self.workQueue, ^{
         
         if([self.requests count] > self.maxScheduledRequests){
             
@@ -296,24 +367,13 @@ static NSThread* _sharedThread = nil;
 }
 
 
-- (void)suspend{
-    
-    self.suspended = YES;
-    
-    
-}
-- (void)resume{
-    
-    self.suspended = NO;
-    
-    [self sendNextRequest];
-    
-}
+#pragma mark -
+#pragma mark Cancel Requests
 
 //always called by request
 - (void)cancelRequest:(FJBlockURLRequest*)req{
     
-    dispatch_async(self.managerQueue, ^{
+    dispatch_async(self.workQueue, ^{
         
         int index = [self.requests indexOfObjectPassingTest:^(id obj, NSUInteger idx, BOOL *stop){
             
@@ -339,7 +399,7 @@ static NSThread* _sharedThread = nil;
 
 - (void)cancelAllRequests{
     
-    dispatch_async(self.managerQueue, ^{
+    dispatch_async(self.workQueue, ^{
         
         [self.requests enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop){
             
@@ -364,7 +424,7 @@ static NSThread* _sharedThread = nil;
 //always called internally
 - (void)removeRequest:(FJBlockURLRequest*)req{
     
-    dispatch_async(self.managerQueue, ^{
+    dispatch_async(self.workQueue, ^{
         
         dispatch_sync(req.workQueue, ^{
             

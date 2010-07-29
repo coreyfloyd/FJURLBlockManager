@@ -10,25 +10,30 @@ typedef enum  {
 
 @interface FJBlockURLManager : NSObject {
     
-    dispatch_queue_t managerQueue;
     FJNetworkBlockManagerType type;
     
     BOOL idle;
 }
++ (FJBlockURLManager*)defaultManager;
+
+//info
+@property (nonatomic, readonly) BOOL idle;                            //KVO to know when ALL work is complete, if so inclined
 
 
+//config
 @property (nonatomic) FJNetworkBlockManagerType type;       //default = queue
 @property (nonatomic) NSInteger maxConcurrentRequests;      //default = 2
 @property (nonatomic) NSInteger maxScheduledRequests;       //default = 100 
-@property (nonatomic) BOOL idle;                            //KVO to know when ALL work is complete, if so inclined
-@property (nonatomic, readonly) BOOL suspended;             
 
 
-+ (FJBlockURLManager*)defaultManager;
-
-- (void)suspend; //requests in motion will stay in motion, even when acted upon by an outside force (you)
+//Suspend
+//requests in motion will stay in motion, even when acted upon by an outside force (you)
+//all suspends must be balanced with a resume (increment/decrement)
+- (void)suspend; 
 - (void)resume;
 
+
+//Kill them all
 - (void)cancelAllRequests;
 
 
