@@ -3,16 +3,17 @@
 
 @interface FJBlockURLRequest (FJNetworkBlockManager)
 
+@property (nonatomic, retain) NSThread *connectionThread;
 - (BOOL)start; 
 
 @end
 
 
-static FJBlockURLManager* _defaultmanager = nil;
+static FJBlockURLManager* _defaultManager = nil;
+static NSThread* _sharedThread = nil;
 
 @interface FJBlockURLManager()
 
-@property (nonatomic, retain, readwrite) NSThread *requestThread;
 @property (nonatomic) dispatch_queue_t managerQueue;
 @property (nonatomic, retain) NSMutableArray *requests;
 @property (nonatomic, retain) NSMutableArray *activeRequests;
@@ -30,7 +31,6 @@ static FJBlockURLManager* _defaultmanager = nil;
 
 @implementation FJBlockURLManager
 
-@synthesize requestThread;
 @synthesize managerQueue;
 @synthesize type;
 
@@ -54,20 +54,44 @@ static FJBlockURLManager* _defaultmanager = nil;
     [requests release];
     requests = nil;
     dispatch_release(managerQueue);
-    [requestThread release];
-    requestThread = nil;
     [super dealloc];
 }
 
++ (NSThread*)sharedThread{
+    
+    if(_sharedThread == nil){
+        
+        _sharedThread = [[NSThread alloc] initWithTarget:self selector:@selector(run) object:nil];
+        [_sharedThread setThreadPriority:0.0];
+        [_sharedThread start];        
+    }
+    
+    return _sharedThread;
+}
+
+
++ (void)run{
+    
+    
+    while (![_sharedThread isCancelled]) {
+        
+        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+        
+        [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:5]];
+        
+        [pool release];
+        
+    }
+}
 
 
 +(FJBlockURLManager*)defaultManager{
     
-    if(_defaultmanager == nil){
-        _defaultmanager = [[FJBlockURLManager alloc] init];
+    if(_defaultManager == nil){
+        _defaultManager = [[FJBlockURLManager alloc] init];
     }
     
-    return _defaultmanager;
+    return _defaultManager;
 }
 
 
@@ -86,31 +110,10 @@ static FJBlockURLManager* _defaultmanager = nil;
         self.managerQueue = dispatch_queue_create([queueName UTF8String], NULL);
         dispatch_retain(managerQueue);
 
-        
-        self.requestThread = [[NSThread alloc] initWithTarget:self selector:@selector(run) object:nil];
-        [self.requestThread start];
-                
     }
     return self;
 }
 
-
-- (void)run{
-    
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
-    [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(keepAlive) userInfo:nil repeats:YES];
-    
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate distantFuture]];
-	
-	[pool release];
-}
-
-- (void)keepAlive{
-    
-    //NSLog(@"Tick");
-    //nonop
-}
 
 
 
@@ -119,6 +122,8 @@ static FJBlockURLManager* _defaultmanager = nil;
     dispatch_async(self.managerQueue, ^{
         
         NSLog(@"url to schedule: %@", [[req URL] description]);
+        
+        req.connectionThread = [FJBlockURLManager sharedThread];
         
         [self.requests addObject:req];
         

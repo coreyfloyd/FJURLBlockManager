@@ -8,8 +8,6 @@
 - (void)scheduleRequest:(FJBlockURLRequest*)req;
 - (void)cancelRequest:(FJBlockURLRequest*)req;
 
-@property (nonatomic, retain, readonly) NSThread *requestThread;
-
 
 @end
 
@@ -135,9 +133,7 @@ int const kMaxAttempts = 3;
         
         self.inProcess = YES;
         self.attempt = 0;
-        
-        self.connectionThread = self.manager.requestThread;
-        
+                
         if(!self.responseQueue){
             
             self.responseQueue = dispatch_get_main_queue();
