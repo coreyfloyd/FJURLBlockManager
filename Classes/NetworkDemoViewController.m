@@ -86,6 +86,10 @@
         
         [req setCompletionBlock:^(NSData* result) {
             
+            if([each isEqualToString:@"http://farm5.static.flickr.com/4096/4808757119_21eb97ed7e.jpg"])
+                [[FJBlockURLManager defaultManager] suspend];
+
+            
             UIImage* i = [UIImage imageWithData:result];
             
             NSLog(@"image fetched: %@", [i description]);
@@ -103,12 +107,8 @@
         
     }
     
-    [NSTimer scheduledTimerWithTimeInterval:0.5
-                                     target:[FJBlockURLManager defaultManager] 
-                                   selector:@selector(suspend) 
-                                   userInfo:nil 
-                                    repeats:NO];
-    
+    [[FJBlockURLManager defaultManager] suspend];
+
     
     [NSTimer scheduledTimerWithTimeInterval:5.0
                                      target:[FJBlockURLManager defaultManager] 

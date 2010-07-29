@@ -10,9 +10,6 @@ typedef enum  {
 
 @interface FJBlockURLManager : NSObject {
     
-    FJNetworkBlockManagerType type;
-    
-    BOOL idle;
 }
 + (FJBlockURLManager*)defaultManager;
 
