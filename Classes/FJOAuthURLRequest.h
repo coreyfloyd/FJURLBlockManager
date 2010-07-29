@@ -1,4 +1,6 @@
 
+//Based on OAMutableURLRequest from jdg/oauthconsumer
+
 #import <Foundation/Foundation.h>
 #import "FJBlockURLRequest.h"
 
