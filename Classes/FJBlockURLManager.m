@@ -199,11 +199,13 @@ static NSThread* _sharedThread = nil;
 
 - (void)suspend{
     
+    NSLog(@"susupended");
     dispatch_suspend(self.workQueue);
     
 }
 - (void)resume{
     
+    NSLog(@"resumed");
     dispatch_resume(self.workQueue);
     
 }
@@ -399,7 +401,9 @@ static NSThread* _sharedThread = nil;
 
 - (void)cancelAllRequests{
     
-    dispatch_async(self.workQueue, ^{
+    dispatch_suspend(self.workQueue);
+    
+    dispatch_async(self.configurationQueue, ^{
         
         [self.requests enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop){
             
@@ -417,6 +421,8 @@ static NSThread* _sharedThread = nil;
         }];
         
         [self.requests removeAllObjects];
+        
+        dispatch_resume(self.workQueue);
         
     });
 }

@@ -258,13 +258,13 @@ int const kMaxAttempts = 3;
         
         dispatch_async(self.responseQueue, ^{
             
-            NSLog(@"Queue check: %@", [self.responseData description]);
+            //NSLog(@"Queue check: %@", [self.responseData description]);
 
             self.completionBlock(self.responseData);
             
             dispatch_async(self.workQueue, ^{
                 
-                NSLog(@"Doublecheck: %@", [self.responseData description]);
+                //NSLog(@"Doublecheck: %@", [self.responseData description]);
                 
                 self.isFinished = YES;
                 self.inProcess = NO;

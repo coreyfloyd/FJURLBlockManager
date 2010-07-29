@@ -75,8 +75,11 @@
     
 #else
     
+    [[FJBlockURLManager defaultManager] setMaxConcurrentRequests:1];
+        
     for(NSString* each in a){
         
+            
         NSURL* url = [NSURL URLWithString:each];
         
         FJBlockURLRequest* req = [FJBlockURLRequest requestWithURL:url];
@@ -97,8 +100,21 @@
         }];
         
         [req schedule];
-
+        
     }
+    
+    [NSTimer scheduledTimerWithTimeInterval:0.5
+                                     target:[FJBlockURLManager defaultManager] 
+                                   selector:@selector(suspend) 
+                                   userInfo:nil 
+                                    repeats:NO];
+    
+    
+    [NSTimer scheduledTimerWithTimeInterval:5.0
+                                     target:[FJBlockURLManager defaultManager] 
+                                   selector:@selector(resume) 
+                                   userInfo:nil 
+                                    repeats:NO];
     
 #endif
 }
