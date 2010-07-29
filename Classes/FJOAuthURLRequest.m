@@ -4,6 +4,8 @@
 #import "OAToken.h"
 #import "OAHMAC_SHA1SignatureProvider.h"
 #import "OASignatureProviding.h"
+#import "OARequestParameter.h"
+#import "NSMutableURLRequest+Parameters.h"
 
 @interface FJOAuthURLRequest()
 

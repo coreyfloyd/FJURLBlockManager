@@ -15,6 +15,7 @@ static FJBlockURLManager* _defaultmanager = nil;
 @property (nonatomic, retain, readwrite) NSThread *requestThread;
 @property (nonatomic) dispatch_queue_t managerQueue;
 @property (nonatomic, retain) NSMutableArray *requests;
+@property (nonatomic, retain) NSMutableArray *activeRequests;
 @property (nonatomic, retain) NSMutableDictionary *requestMap;
 
 - (FJBlockURLRequest*)nextRequest;
@@ -34,6 +35,7 @@ static FJBlockURLManager* _defaultmanager = nil;
 @synthesize type;
 
 @synthesize requests;
+@synthesize activeRequests;
 @synthesize requestMap;
 
 @synthesize maxConcurrentRequests;
@@ -47,6 +49,8 @@ static FJBlockURLManager* _defaultmanager = nil;
 {
     [requestMap release];
     requestMap = nil;
+    [activeRequests release];
+    activeRequests = nil;
     [requests release];
     requests = nil;
     dispatch_release(managerQueue);
