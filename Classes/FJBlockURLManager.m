@@ -104,7 +104,7 @@ static FJBlockURLManager* _defaultmanager = nil;
 
 - (void)keepAlive{
     
-    NSLog(@"Tick");
+    //NSLog(@"Tick");
     //nonop
 }
 
@@ -146,7 +146,7 @@ static FJBlockURLManager* _defaultmanager = nil;
 
         
         [nextRequest start];
-        [nextRequest addObserver:self forKeyPath:@"inProcess" options:0 context:nil]; //TODO: possibly call on request queue
+        [nextRequest addObserver:self forKeyPath:@"isFinished" options:0 context:nil]; //TODO: possibly call on request queue
         
     });
 }
@@ -187,7 +187,7 @@ static FJBlockURLManager* _defaultmanager = nil;
 
             dispatch_sync(req.workQueue, ^{
                 
-                answer = !req.inProcess;
+                answer = (!req.inProcess && !req.isFinished);
                 
             });
             
@@ -206,7 +206,7 @@ static FJBlockURLManager* _defaultmanager = nil;
             
             dispatch_sync(req.workQueue, ^{
                 
-                answer = !req.inProcess;
+                answer = (!req.inProcess && !req.isFinished);
                 
             });
             
@@ -231,7 +231,7 @@ static FJBlockURLManager* _defaultmanager = nil;
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context{
     
-    if(keyPath == @"inProcess"){
+    if(keyPath == @"isFinished"){
         
         FJBlockURLRequest* req = (FJBlockURLRequest*)object;
 
@@ -239,7 +239,7 @@ static FJBlockURLManager* _defaultmanager = nil;
 
             if(req.inProcess == NO){
                 
-                [req removeObserver:self forKeyPath:@"inProcess"];
+                [req removeObserver:self forKeyPath:@"isFinished"];
 
                 dispatch_async(self.managerQueue, ^{
                     
@@ -319,7 +319,7 @@ static FJBlockURLManager* _defaultmanager = nil;
             dispatch_sync(req.workQueue, ^{
                 
                 if(req.inProcess)
-                    [req removeObserver:self forKeyPath:@"inProcess"];
+                    [req removeObserver:self forKeyPath:@"isFinished"];
                 
             });
             
@@ -340,7 +340,7 @@ static FJBlockURLManager* _defaultmanager = nil;
         dispatch_sync(req.workQueue, ^{
             
             if(req.inProcess)
-                [req removeObserver:self forKeyPath:@"inProcess"];
+                [req removeObserver:self forKeyPath:@"isFinished"];
             
         });
         

@@ -1,10 +1,3 @@
-//
-//  FJBlockURLRequest.h
-//  FJNetworkBlockManager
-//
-//  Created by Corey Floyd on 7/24/10.
-//  Copyright (c) 2010 Flying Jalapeño. All rights reserved.
-//
 
 #import <Foundation/Foundation.h>
 
@@ -20,8 +13,8 @@ typedef void (^FJNetworkErrorHandler)(NSError* error);
 }
 
 //Use
-- (void)schedule;
-- (void)scheduleWithNetworkManager:(FJBlockURLManager*)networkManager;
+- (void)schedule; //schedules with the defualt manager, retains!
+- (void)scheduleWithNetworkManager:(FJBlockURLManager*)networkManager; //same, but on a manger of your choice
 
 - (void)cancel;
 
@@ -30,7 +23,7 @@ typedef void (^FJNetworkErrorHandler)(NSError* error);
 @property (nonatomic, copy) FJNetworkResponseHandler completionBlock; //called on success
 @property (nonatomic, copy) FJNetworkErrorHandler failureBlock; //called on failure, when attempt = maxAttempts
 
-@property (nonatomic) dispatch_queue_t responseQueue; //queue that blocaks are called on, default = main queue
+@property (nonatomic) dispatch_queue_t responseQueue; //queue that completion/failure blocks are called on, default = main queue
 
 @property (nonatomic, retain) NSMutableData *responseData; //result
 
@@ -41,6 +34,8 @@ typedef void (^FJNetworkErrorHandler)(NSError* error);
 
 //info
 @property (nonatomic, readonly) BOOL inProcess; //are we working?
+@property (nonatomic, readonly) BOOL isFinished; //are we done?
+
 @property (nonatomic, readonly) int attempt; //is this the first attempt?
 
 

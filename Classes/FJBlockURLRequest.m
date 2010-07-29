@@ -21,6 +21,7 @@ int const kMaxAttempts = 3;
 @property (nonatomic, retain) NSURLConnection *connection;
 
 @property (nonatomic, readwrite) BOOL inProcess; 
+@property (nonatomic, readwrite) BOOL isFinished; 
 @property (nonatomic, readwrite) int attempt; 
 
 @property (nonatomic, readwrite) dispatch_queue_t workQueue;
@@ -39,6 +40,7 @@ int const kMaxAttempts = 3;
 @synthesize completionBlock;
 @synthesize failureBlock;
 @synthesize inProcess;
+@synthesize isFinished;
 @synthesize attempt;
 @synthesize responseData;
 @synthesize maxAttempts;
@@ -128,6 +130,9 @@ int const kMaxAttempts = 3;
             return;
         }
         
+        NSLog(@"starting request: %@", [self description]);
+
+        
         self.inProcess = YES;
         self.attempt = 0;
         
@@ -153,8 +158,7 @@ int const kMaxAttempts = 3;
         return;
     }
     
-    
-    NSLog(@"sending request...");
+    NSLog(@"opening connection for request: %@", [self description]);
     
     self.connection = [[NSURLConnection alloc] initWithRequest:self delegate:self];
     
@@ -162,6 +166,7 @@ int const kMaxAttempts = 3;
         
         dispatch_async(self.workQueue, ^{
             
+            self.isFinished = NO;
             self.responseData = [NSMutableData data];
             
         });
@@ -230,6 +235,7 @@ int const kMaxAttempts = 3;
                     
                     dispatch_async(self.workQueue, ^{
                         
+                        self.isFinished = YES;
                         self.inProcess = NO;
                         
                     });
@@ -238,6 +244,7 @@ int const kMaxAttempts = 3;
                 
             }else{
                 
+                self.isFinished = YES;
                 self.inProcess = NO;
             }
             
@@ -255,10 +262,15 @@ int const kMaxAttempts = 3;
         
         dispatch_async(self.responseQueue, ^{
             
+            NSLog(@"Queue check: %@", [self.responseData description]);
+
             self.completionBlock(self.responseData);
             
             dispatch_async(self.workQueue, ^{
                 
+                NSLog(@"Doublecheck: %@", [self.responseData description]);
+                
+                self.isFinished = YES;
                 self.inProcess = NO;
             });
             
@@ -266,6 +278,7 @@ int const kMaxAttempts = 3;
         
     }else{
         
+        self.isFinished = YES;
         self.inProcess = NO;
 
     }
@@ -285,6 +298,7 @@ int const kMaxAttempts = 3;
         
         self.responseData = nil;
         
+        self.isFinished = NO;
         self.inProcess = NO;
         
     });
