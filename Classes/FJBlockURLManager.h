@@ -21,9 +21,13 @@ typedef enum  {
 @property (nonatomic) NSInteger maxConcurrentRequests;      //default = 2
 @property (nonatomic) NSInteger maxScheduledRequests;       //default = 100 
 @property (nonatomic) BOOL idle;                            //KVO to know when ALL work is complete, if so inclined
+@property (nonatomic, readonly) BOOL suspended;             
 
 
 + (FJBlockURLManager*)defaultManager;
+
+- (void)suspend; //requests in motion will stay in motion, even when acted upon by an outside force (you)
+- (void)resume;
 
 - (void)cancelAllRequests;
 

@@ -18,6 +18,8 @@ static NSThread* _sharedThread = nil;
 @property (nonatomic, retain) NSMutableArray *requests;
 @property (nonatomic, retain) NSMutableArray *activeRequests;
 @property (nonatomic, retain) NSMutableDictionary *requestMap;
+@property (nonatomic, readwrite) BOOL suspended;             
+
 
 - (FJBlockURLRequest*)nextRequest;
 - (void)sendNextRequest;
@@ -138,6 +140,9 @@ static NSThread* _sharedThread = nil;
 - (void)sendNextRequest{
     
     dispatch_async(self.managerQueue, ^{
+        
+        if(suspended)
+            return;
         
         if([self.requests count] == 0){
             self.idle = YES;
@@ -288,6 +293,21 @@ static NSThread* _sharedThread = nil;
             
         }
     });
+}
+
+
+- (void)suspend{
+    
+    self.suspended = YES;
+    
+    
+}
+- (void)resume{
+    
+    self.suspended = NO;
+    
+    [self sendNextRequest];
+    
 }
 
 //always called by request
