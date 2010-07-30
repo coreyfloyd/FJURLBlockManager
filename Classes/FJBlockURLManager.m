@@ -4,6 +4,7 @@
 @interface FJBlockURLRequest (FJNetworkBlockManager)
 
 @property (nonatomic, retain) NSThread *connectionThread;
+@property (nonatomic) dispatch_queue_t workQueue; //need to make some changes, use this queue
 - (BOOL)start; 
 
 @end
@@ -297,22 +298,22 @@ static NSThread* _sharedThread = nil;
         
         FJBlockURLRequest* req = (FJBlockURLRequest*)object;
 
-        dispatch_async(req.workQueue, ^{
-
-            if(req.inProcess == NO){
+        if(req.isFinished == YES){
+            
+            dispatch_async(req.workQueue, ^{
                 
                 [req removeObserver:self forKeyPath:@"isFinished"];
-
-                dispatch_async(self.workQueue, ^{
-                    
-                    [self.requests removeObject:req];
-                    [self.activeRequests removeObject:req];
-                    [self sendNextRequest];
-                    
-                });
-            }
+                
+            });
             
-        });
+            dispatch_async(self.workQueue, ^{
+                
+                [self.requests removeObject:req];
+                [self.activeRequests removeObject:req];
+                [self sendNextRequest];
+                
+            });
+        }
         
         return;
     }
@@ -361,7 +362,7 @@ static NSThread* _sharedThread = nil;
             
             FJBlockURLRequest* req = (FJBlockURLRequest*)obj;
             
-            dispatch_sync(req.workQueue, ^{
+            dispatch_async(req.workQueue, ^{
                 
                 if(req.inProcess)
                     [req removeObserver:self forKeyPath:@"isFinished"];
@@ -383,14 +384,14 @@ static NSThread* _sharedThread = nil;
 //always called internally
 - (void)removeRequest:(FJBlockURLRequest*)req{
     
-    dispatch_async(self.workQueue, ^{
+    dispatch_async(req.workQueue, ^{
         
-        dispatch_sync(req.workQueue, ^{
-            
-            if(req.inProcess)
-                [req removeObserver:self forKeyPath:@"isFinished"];
-            
-        });
+        if(req.inProcess)
+            [req removeObserver:self forKeyPath:@"isFinished"];
+        
+    });
+    
+    dispatch_async(self.workQueue, ^{
         
         [req cancel];
         

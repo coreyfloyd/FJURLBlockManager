@@ -40,11 +40,4 @@ typedef void (^FJNetworkErrorHandler)(NSError* error);
 
 
 
-
-
-
-@property (nonatomic, readonly) dispatch_queue_t workQueue; //need to make some changes, use this queue
-
-
-
 @end

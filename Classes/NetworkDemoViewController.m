@@ -86,9 +86,10 @@
         
         [req setCompletionBlock:^(NSData* result) {
             
+            /*
             if([each isEqualToString:@"http://farm5.static.flickr.com/4096/4808757119_21eb97ed7e.jpg"])
                 [[FJBlockURLManager defaultManager] suspend];
-
+             */
             
             UIImage* i = [UIImage imageWithData:result];
             

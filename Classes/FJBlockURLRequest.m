@@ -222,27 +222,20 @@ int const kMaxAttempts = 3;
         if(self.attempt > self.maxAttempts){
             
             self.responseData = nil;
-            
+        
             if(responseQueue && failureBlock){
                 
                 dispatch_async(self.responseQueue, ^{
                     
                     self.failureBlock(error);
                     
-                    dispatch_async(self.workQueue, ^{
-                        
-                        self.isFinished = YES;
-                        self.inProcess = NO;
-                        
-                    });
-                    
                 });
                 
-            }else{
-                
-                self.isFinished = YES;
-                self.inProcess = NO;
             }
+            
+            self.isFinished = YES;
+            self.inProcess = NO;
+
             
         }else{
             
@@ -254,30 +247,24 @@ int const kMaxAttempts = 3;
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     
-    if(completionBlock){
-        
-        dispatch_async(self.responseQueue, ^{
-            
-            //NSLog(@"Queue check: %@", [self.responseData description]);
 
-            self.completionBlock(self.responseData);
-            
-            dispatch_async(self.workQueue, ^{
-                
-                //NSLog(@"Doublecheck: %@", [self.responseData description]);
-                
-                self.isFinished = YES;
-                self.inProcess = NO;
-            });
-            
+    if(completionBlock){
+
+        NSData* data = self.responseData;
+
+        dispatch_async(self.responseQueue, ^{
+            //NSLog(@"Queue check: %@", [self.responseData description]);
+            self.completionBlock(data);
         });
         
-    }else{
         
+    }
+    
+    dispatch_async(self.workQueue, ^{
+        //NSLog(@"Doublecheck: %@", [data description]);
         self.isFinished = YES;
         self.inProcess = NO;
-
-    }
+    });
     
     
 }
