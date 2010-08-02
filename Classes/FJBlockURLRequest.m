@@ -157,13 +157,13 @@ int const kMaxAttempts = 3;
     NSLog(@"opening connection for request: %@", [self description]);
     
     self.connection = [[NSURLConnection alloc] initWithRequest:self delegate:self];
+    self.responseData = [NSMutableData data];
     
     if(connection){
         
         dispatch_async(self.workQueue, ^{
             
             self.isFinished = NO;
-            self.responseData = [NSMutableData data];
             
         });
         
@@ -193,24 +193,29 @@ int const kMaxAttempts = 3;
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     
-    dispatch_async(self.workQueue, ^{
-        
-        [responseData setLength:0];
-        
-    });
+    if(![[NSThread currentThread] isEqual:self.connectionThread]){
+        ALWAYS_ASSERT;
+    }
+    
+    [responseData setLength:0];
+
     
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+    if(![[NSThread currentThread] isEqual:self.connectionThread]){
+        ALWAYS_ASSERT;
+    }
     
-    dispatch_async(self.workQueue, ^{
-        
-        [responseData appendData:data];
-        
-    });
+    [responseData appendData:data];
+    
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
+    
+    if(![[NSThread currentThread] isEqual:self.connectionThread]){
+        ALWAYS_ASSERT;
+    }
     
     dispatch_async(self.workQueue, ^{
         
@@ -247,16 +252,24 @@ int const kMaxAttempts = 3;
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     
-
+    if(![[NSThread currentThread] isEqual:self.connectionThread]){
+        ALWAYS_ASSERT;
+    }
+    
     if(completionBlock){
 
-        NSData* data = self.responseData;
-
-        dispatch_async(self.responseQueue, ^{
+        __block NSData* data = [self.responseData copy];
+        
+        void (^responseBlock)() = ^() {
             //NSLog(@"Queue check: %@", [self.responseData description]);
             self.completionBlock(data);
-        });
+        };
         
+        responseBlock = [responseBlock copy]; 
+        
+        dispatch_async(self.responseQueue, responseBlock);
+        
+        [responseBlock release];
         
     }
     
@@ -279,7 +292,10 @@ int const kMaxAttempts = 3;
                               withObject:nil 
                            waitUntilDone:NO];
         
-        self.responseData = nil;
+        [self performSelector:@selector(setResponseData:) 
+                     onThread:self.connectionThread 
+                   withObject:nil 
+                waitUntilDone:NO]; 
         
         self.isFinished = NO;
         self.inProcess = NO;
