@@ -62,6 +62,8 @@
          consumer:(OAConsumer*)aConsumer
       accessToken:(OAToken*)aToken
 {
+    if(aConsumer == nil)
+        return nil;
     
     self = [super initWithURL:url];
     if (self != nil) {

@@ -1,10 +1,10 @@
 
 #import "NetworkDemoViewController.h"
 #import "FJBlockURLManager.h"
-#import "FJImageCacheManager.h"
+#import "FJImageURLRequest.h"
 #import "FJBlockURLRequest.h"
 
-//#define USE_IMAGE_MANAGER
+#define USE_IMAGE_REQ
 
 @implementation NetworkDemoViewController
 
@@ -49,28 +49,37 @@
                   nil];
     
     
-#ifdef USE_IMAGE_MANAGER
-    
-    FJImageCacheManager* i = [FJImageCacheManager defaultManager];
-    
+#ifdef USE_IMAGE_REQ
+        
     for(NSString* each in a){
         
         NSURL* url = [NSURL URLWithString:each];
-        [i fetchImageAtURL:url 
-            respondOnQueue:dispatch_get_main_queue() 
-           completionBlock:^(UIImage* image) {
-                              
-               NSLog(@"image fetched: %@", [image description]);
-               
-           } 
-              failureBlock:^(NSError *error) {
-                  
-                  NSLog(@"Image fetch error: %@", [error description]);  
-                  
-              }
+        
+        FJImageURLRequest* req = [FJImageURLRequest requestWithURL:url];
+
+        
+        [req setImageBlock:^(UIImage* image) {
+            
+            /*
+             if([each isEqualToString:@"http://farm5.static.flickr.com/4096/4808757119_21eb97ed7e.jpg"])
+             [[FJBlockURLManager defaultManager] suspend];
+             */
+            
+            
+            NSLog(@"image fetched: %@", [image description]);
+            
+        }]; 
+        
+        [req setFailureBlock:^(NSError *error) {
+            
+            NSLog(@"Image fetch error: %@", [error description]);  
+            
+            
+        }];
          
-         requestedByobject:self];
     
+        [req schedule];
+
     }
     
 #else

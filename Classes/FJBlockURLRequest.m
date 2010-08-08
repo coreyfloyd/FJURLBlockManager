@@ -68,6 +68,7 @@ int const kMaxAttempts = 3;
         NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManagerRequest.%i", [self hash]];
         self.workQueue = dispatch_queue_create([queueName UTF8String], NULL);
         self.maxAttempts = kMaxAttempts;
+        self.responseQueue = dispatch_get_main_queue();
         
     }
     return self;    

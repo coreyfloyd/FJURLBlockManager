@@ -38,6 +38,9 @@
 		C40C63C611FB6166008A66B9 /* FJBlockURLRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */; };
 		C468064811F7767900933E3B /* NSString+extensions.m in Sources */ = {isa = PBXBuildFile; fileRef = C468064711F7767900933E3B /* NSString+extensions.m */; };
 		C46C182A11F68BE700377E8C /* FJBlockURLManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C46C182911F68BE700377E8C /* FJBlockURLManager.m */; };
+		C48D79DF120F32700022E643 /* FJImageURLRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = C48D79DE120F32700022E643 /* FJImageURLRequest.m */; };
+		C48D79F6120F33460022E643 /* NSObject+AssociatedObjects.m in Sources */ = {isa = PBXBuildFile; fileRef = C48D79F5120F33460022E643 /* NSObject+AssociatedObjects.m */; };
+		C48D79FF120F339A0022E643 /* NSError+Vimeo.m in Sources */ = {isa = PBXBuildFile; fileRef = C48D79FE120F339A0022E643 /* NSError+Vimeo.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -100,6 +103,13 @@
 		C468064711F7767900933E3B /* NSString+extensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+extensions.m"; sourceTree = "<group>"; };
 		C46C182811F68BE700377E8C /* FJBlockURLManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJBlockURLManager.h; sourceTree = "<group>"; };
 		C46C182911F68BE700377E8C /* FJBlockURLManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = FJBlockURLManager.m; sourceTree = "<group>"; };
+		C48D79DD120F32700022E643 /* FJImageURLRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJImageURLRequest.h; sourceTree = "<group>"; };
+		C48D79DE120F32700022E643 /* FJImageURLRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJImageURLRequest.m; sourceTree = "<group>"; };
+		C48D79E4120F32C10022E643 /* MacroUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacroUtilities.h; sourceTree = "<group>"; };
+		C48D79F4120F33460022E643 /* NSObject+AssociatedObjects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+AssociatedObjects.h"; sourceTree = "<group>"; };
+		C48D79F5120F33460022E643 /* NSObject+AssociatedObjects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+AssociatedObjects.m"; sourceTree = "<group>"; };
+		C48D79FD120F339A0022E643 /* NSError+Vimeo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+Vimeo.h"; sourceTree = "<group>"; };
+		C48D79FE120F339A0022E643 /* NSError+Vimeo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+Vimeo.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -181,6 +191,8 @@
 		C40376A41201A3D0008D5257 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				C48D79DD120F32700022E643 /* FJImageURLRequest.h */,
+				C48D79DE120F32700022E643 /* FJImageURLRequest.m */,
 				C40376A11201A3C4008D5257 /* FJOAuthURLRequest.h */,
 				C40376A21201A3C4008D5257 /* FJOAuthURLRequest.m */,
 				C40C63C411FB6166008A66B9 /* FJBlockURLRequest.h */,
@@ -194,6 +206,11 @@
 		C40376A51201A3D5008D5257 /* Support */ = {
 			isa = PBXGroup;
 			children = (
+				C48D79FD120F339A0022E643 /* NSError+Vimeo.h */,
+				C48D79FE120F339A0022E643 /* NSError+Vimeo.m */,
+				C48D79F4120F33460022E643 /* NSObject+AssociatedObjects.h */,
+				C48D79F5120F33460022E643 /* NSObject+AssociatedObjects.m */,
+				C48D79E4120F32C10022E643 /* MacroUtilities.h */,
 				C40376A71201A416008D5257 /* oauthconsumer */,
 				C468064611F7767900933E3B /* NSString+extensions.h */,
 				C468064711F7767900933E3B /* NSString+extensions.m */,
@@ -345,6 +362,9 @@
 				C40376DE1201A418008D5257 /* OAServiceTicket.m in Sources */,
 				C40376E01201A418008D5257 /* OAToken.m in Sources */,
 				C40376E11201A418008D5257 /* OATokenManager.m in Sources */,
+				C48D79DF120F32700022E643 /* FJImageURLRequest.m in Sources */,
+				C48D79F6120F33460022E643 /* NSObject+AssociatedObjects.m in Sources */,
+				C48D79FF120F339A0022E643 /* NSError+Vimeo.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
