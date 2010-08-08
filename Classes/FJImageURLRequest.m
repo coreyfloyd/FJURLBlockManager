@@ -113,7 +113,7 @@ static NSCache* _imageCache = nil;
         
         [_imageCache setName:@"ImageURLCache"];
         
-        float cacheSizeFloat = floorf(131072 * totalCacheSizeInMB);
+        float cacheSizeFloat = floorf(1048576 * totalCacheSizeInMB);
         
         ASSERT_TRUE(cacheSizeFloat < NSUIntegerMax);
         ASSERT_TRUE(cacheSizeFloat > 0);
@@ -135,6 +135,8 @@ static NSCache* _imageCache = nil;
 + (void)setImage:(UIImage*)image forURL:(NSURL*)url{
     
     //TODO: nil/null/0 checking
+    //TODO: are bytes of UIImage in mem larger than on disk due to compression? (JPEG or PNG), the bytes calculated her are roughly 10x bigger than the size reported by the finder
+
     
     size_t bytesperRow = CGImageGetBytesPerRow(image.CGImage);
     size_t rows = CGImageGetHeight(image.CGImage);
@@ -145,14 +147,14 @@ static NSCache* _imageCache = nil;
 
 
 
-+ (id)imageRequestWithURL:(NSURL*)imageURL{
++ (id)requestWithURL:(NSURL*)url{
     
-    FJImageURLRequest* r = [self requestForURL:imageURL];
+    FJImageURLRequest* r = [self requestForURL:url];
     
     
     if(r == nil){
-        r = [[FJImageURLRequest alloc] initWithURL:imageURL];
-        [self setRequest:r forURL:imageURL];
+        r = [[FJImageURLRequest alloc] initWithURL:url];
+        [self setRequest:r forURL:url];
         
         [r autorelease];
     }

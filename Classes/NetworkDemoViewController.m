@@ -37,10 +37,6 @@
 
 - (void)viewWillAppear:(BOOL)animated{
     
-    
-
-    
-
     NSArray* a = [NSArray arrayWithObjects:
                   @"http://farm5.static.flickr.com/4079/4812204972_381e02d013.jpg",
                   @"http://farm5.static.flickr.com/4096/4808757119_21eb97ed7e.jpg",

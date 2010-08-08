@@ -11,7 +11,8 @@ typedef void (^FJImageResponseHandler)(UIImage* image);
 @property (nonatomic) BOOL useMemoryCache; //default = YES
 @property (nonatomic) BOOL useDiskCache; //default = YES
 
-+ (id)imageRequestWithURL:(NSURL*)imageURL;
+//only use this convienence initializer
++ (id)requestWithURL:(NSURL*)url;
 
 
 @end
