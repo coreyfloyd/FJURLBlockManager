@@ -3,6 +3,8 @@
 
 //#define USE_CHARLES_PROXY
 
+NSString* const FJBlockURLErrorDomain = @"FJBlockURLErrorDomain";
+
 @interface FJBlockURLManager (FJBlockURLRequest)
 
 - (void)scheduleRequest:(FJBlockURLRequest*)req;
@@ -18,11 +20,13 @@ int const kMaxAttempts = 3;
 @property (nonatomic, retain) NSThread *connectionThread;
 @property (nonatomic, retain) NSURLConnection *connection;
 
-@property (nonatomic, readwrite) BOOL inProcess; 
-@property (nonatomic, readwrite) BOOL isFinished; 
-@property (nonatomic, readwrite) int attempt; 
+@property (readwrite) BOOL isScheduled; 
+@property (readwrite) BOOL inProcess; 
+@property (readwrite) BOOL isFinished; 
+@property (readwrite) int attempt; 
 
 @property (nonatomic, readwrite) dispatch_queue_t workQueue;
+@property (nonatomic, assign, readwrite) FJBlockURLManager *manager; 
 
 - (void)openConnection;
 
@@ -37,6 +41,7 @@ int const kMaxAttempts = 3;
 @synthesize responseQueue;
 @synthesize completionBlock;
 @synthesize failureBlock;
+@synthesize isScheduled;
 @synthesize inProcess;
 @synthesize isFinished;
 @synthesize attempt;
@@ -129,7 +134,7 @@ int const kMaxAttempts = 3;
             return;
         }
         
-        NSLog(@"starting request: %@", [self description]);
+        debugLog(@"manager: %@ starting request: %@", [self.manager description], [self description]);
 
         
         self.inProcess = YES;
@@ -155,7 +160,7 @@ int const kMaxAttempts = 3;
         return;
     }
     
-    NSLog(@"opening connection for request: %@", [self description]);
+    debugLog(@"opening connection for request: %@", [self description]);
     
     self.connection = [[NSURLConnection alloc] initWithRequest:self delegate:self];
     self.responseData = [NSMutableData data];
@@ -297,6 +302,25 @@ int const kMaxAttempts = 3;
                      onThread:self.connectionThread 
                    withObject:nil 
                 waitUntilDone:NO]; 
+        
+        
+        //we never finished, but are being cancelled we should send the error block
+        if(self.isFinished == NO){
+            
+            NSDictionary* d = [NSDictionary dictionaryWithObject:@"Request was cancelled" forKey:NSLocalizedDescriptionKey];
+            
+            NSError* error = [NSError errorWithDomain:FJBlockURLErrorDomain code:FJBlockURLErrorCancelled userInfo:d];
+            
+            if(responseQueue && failureBlock){
+                
+                dispatch_async(self.responseQueue, ^{
+                    
+                    self.failureBlock(error);
+                    
+                });
+                
+            }
+        }
         
         self.isFinished = NO;
         self.inProcess = NO;

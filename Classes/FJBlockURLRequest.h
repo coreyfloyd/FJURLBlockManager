@@ -6,6 +6,15 @@
 typedef void (^FJNetworkResponseHandler)(NSData* response);
 typedef void (^FJNetworkErrorHandler)(NSError* error);
 
+extern NSString* const FJBlockURLErrorDomain;
+
+typedef enum  {
+    
+    FJBlockURLErrorNone = 0,
+    FJBlockURLErrorCancelled
+    
+} FJBlockURLErrorCode;
+
 
 @interface FJBlockURLRequest : NSMutableURLRequest {
     
@@ -27,16 +36,18 @@ typedef void (^FJNetworkErrorHandler)(NSError* error);
 
 @property (nonatomic, retain) NSMutableData *responseData; //result
 
-@property (nonatomic) int maxAttempts; //how many retries, default = 3;
+@property (nonatomic) int maxAttempts; //how many retries before failure, default = 3;
 
-@property (nonatomic, assign) FJBlockURLManager *manager; //should this run on a specific manager, defualt = defaultManager
+@property (nonatomic, assign, readonly) FJBlockURLManager *manager; //should this run on a specific manager, defualt = [FJBlockURLManager defaultManager]
 
 
 //info
-@property (nonatomic, readonly) BOOL inProcess; //are we working?
-@property (nonatomic, readonly) BOOL isFinished; //are we done?
+@property (readonly) BOOL isScheduled; //are we scheduled for download?
 
-@property (nonatomic, readonly) int attempt; //is this the first attempt?
+@property (readonly) BOOL inProcess; //are we working?
+@property (readonly) BOOL isFinished; //are we done?
+
+@property (readonly) int attempt; //is this the first attempt?
 
 
 

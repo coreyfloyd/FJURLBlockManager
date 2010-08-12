@@ -15,4 +15,12 @@ typedef void (^FJImageResponseHandler)(UIImage* image);
 + (id)requestWithURL:(NSURL*)url;
 
 
+
+//caches management
++ (void)flushImageCache;
+
++ (void)deleteImageFileForURL:(NSURL*)url;
++ (void)deleteAllImageFiles;
+
+
 @end

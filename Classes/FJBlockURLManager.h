@@ -19,7 +19,7 @@ typedef enum  {
 
 //config
 @property (nonatomic) FJNetworkBlockManagerType type;       //default = queue
-@property (nonatomic) NSInteger maxConcurrentRequests;      //default = 2
+@property (nonatomic) NSInteger maxConcurrentRequests;      //default = 4
 @property (nonatomic) NSInteger maxScheduledRequests;       //default = 100 
 
 
@@ -30,7 +30,7 @@ typedef enum  {
 - (void)resume;
 
 
-//Kill them all
+//Kill them all, will stop requests in motion
 - (void)cancelAllRequests;
 
 

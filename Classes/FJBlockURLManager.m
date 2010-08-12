@@ -4,6 +4,7 @@
 @interface FJBlockURLRequest (FJNetworkBlockManager)
 
 @property (nonatomic, retain) NSThread *connectionThread;
+@property (nonatomic, readwrite) BOOL isScheduled;
 @property (nonatomic) dispatch_queue_t workQueue; //need to make some changes, use this queue
 - (BOOL)start; 
 
@@ -128,7 +129,7 @@ static NSThread* _sharedThread = nil;
         self.requestMap = [NSMutableDictionary dictionaryWithCapacity:10];
         self.type = FJNetworkBlockManagerQueue;
         self.maxScheduledRequests = 100;
-        self.maxConcurrentRequests = 2;
+        self.maxConcurrentRequests = 4;
         
                
     }
@@ -181,13 +182,13 @@ static NSThread* _sharedThread = nil;
 
 - (void)suspend{
     
-    NSLog(@"susupended");
+    debugLog(@"susupended");
     dispatch_suspend(self.workQueue);
     
 }
 - (void)resume{
     
-    NSLog(@"resumed");
+    debugLog(@"resumed");
     dispatch_resume(self.workQueue);
     
 }
@@ -199,9 +200,14 @@ static NSThread* _sharedThread = nil;
 
 - (void)scheduleRequest:(FJBlockURLRequest*)req{
     
+    if(req.isScheduled)
+        return;
+    
     dispatch_async(self.workQueue, ^{
         
-        NSLog(@"url to schedule: %@", [[req URL] description]);
+        req.isScheduled = YES;
+        
+        debugLog(@"Manager scheduling url: %@", [[req URL] description]);
         
         req.connectionThread = [FJBlockURLManager sharedThread];
         
@@ -218,25 +224,34 @@ static NSThread* _sharedThread = nil;
         
         if(([self.requests count] + [self.activeRequests count] + 1) > self.maxScheduledRequests){ //looks like we have some trimming to do
             
-            if(self.type == FJNetworkBlockManagerQueue)
-                return; //full, can't add anymore
-            
-            [self.requests addObject:req];
-            
-            FJBlockURLRequest* requestToKill = [self.requests objectAtIndex:0];
-            
-            dispatch_async(requestToKill.workQueue, ^{
+            if(self.type == FJNetworkBlockManagerQueue){
+                //full, can't add anymore
+                dispatch_async(req.workQueue, ^{
+                    
+                    [req cancel];
+                    
+                });
                 
-                [requestToKill cancel];
+                return; //nothing to add
                 
-            });
-            
-        }else{
-            
-            [self.requests addObject:req];
+            }else{
+                
+                FJBlockURLRequest* requestToKill = [self.requests objectAtIndex:0];
 
+                dispatch_async(requestToKill.workQueue, ^{
+                    
+                    [requestToKill cancel];
+                    
+                });
+                
+            }
+            
+            
         }
         
+        [self.requests addObject:req];
+        [self.requestMap setObject:req forKey:[NSString stringWithInt:[req hash]]];
+
     });
     
 }
@@ -250,17 +265,14 @@ static NSThread* _sharedThread = nil;
             return;
         }
         
-        NSLog(@"number of requests: %i", [self.requests count]);
+        debugLog(@"number of requests: %i", [self.requests count]);
 
         FJBlockURLRequest* nextRequest = [self nextRequest];
         
         if(nextRequest == nil)
             return;
         
-        NSLog(@"url to fetch: %@", [[nextRequest URL] description]);
-
-        [self.activeRequests addObject:nextRequest];
-        [self.requests removeObject:nextRequest];
+        debugLog(@"url to fetch: %@", [[nextRequest URL] description]);
         
         [nextRequest start];
         [nextRequest addObserver:self forKeyPath:@"isFinished" options:0 context:nil]; //TODO: possibly call on request queue
@@ -287,6 +299,8 @@ static NSThread* _sharedThread = nil;
     }
         
     FJBlockURLRequest* nextRequest = [self.requests objectAtIndex:index];
+    [self.activeRequests addObject:nextRequest];
+    [self.requests removeObjectAtIndex:index];    
     
     return nextRequest;
     
@@ -303,11 +317,13 @@ static NSThread* _sharedThread = nil;
             dispatch_async(req.workQueue, ^{
                 
                 [req removeObserver:self forKeyPath:@"isFinished"];
+                req.isScheduled = NO;
                 
             });
             
             dispatch_async(self.workQueue, ^{
                 
+                [self.requestMap removeObjectForKey:[NSString stringWithInt:[req hash]]];
                 [self.requests removeObject:req];
                 [self.activeRequests removeObject:req];
                 [self sendNextRequest];
@@ -327,7 +343,7 @@ static NSThread* _sharedThread = nil;
 
 //always called by request
 - (void)cancelRequest:(FJBlockURLRequest*)req{
-    
+        
     dispatch_async(self.workQueue, ^{
         
         int index = [self.requests indexOfObjectPassingTest:^(id obj, NSUInteger idx, BOOL *stop){
@@ -367,9 +383,12 @@ static NSThread* _sharedThread = nil;
                 if(req.inProcess)
                     [req removeObserver:self forKeyPath:@"isFinished"];
                 
+                req.isScheduled = NO;
+                
             });
             
             [req cancel];
+            [self.requestMap removeObjectForKey:[NSString stringWithInt:[req hash]]];
             
         }];
         
@@ -389,12 +408,15 @@ static NSThread* _sharedThread = nil;
         if(req.inProcess)
             [req removeObserver:self forKeyPath:@"isFinished"];
         
+        req.isScheduled = NO;
+        
     });
     
     dispatch_async(self.workQueue, ^{
         
         [req cancel];
         
+        [self.requestMap removeObjectForKey:[NSString stringWithInt:[req hash]]];
         [self.requests removeObject:req];
         [self.activeRequests removeObject:req];
         
