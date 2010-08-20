@@ -72,6 +72,20 @@ int const kMaxAttempts = 3;
     [super dealloc];
 }
 
+- (id)initWithURL: (NSURL*)theURL cachePolicy: (NSURLRequestCachePolicy)cachePolicy timeoutInterval: (NSTimeInterval)timeoutInterval
+{
+	if ((self = [super initWithURL: theURL cachePolicy: cachePolicy timeoutInterval: timeoutInterval])) {
+        
+        NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManagerRequest.%i", [self hash]];
+        self.workQueue = dispatch_queue_create([queueName UTF8String], NULL);
+        self.maxAttempts = kMaxAttempts;
+        self.responseQueue = dispatch_get_main_queue();
+        
+    }
+	return self;
+}
+
+/*
 - (id)initWithURL:(NSURL*)url{
     
     if ((self = [super initWithURL:url])) {
@@ -86,6 +100,7 @@ int const kMaxAttempts = 3;
     return self;    
     
 }
+*/
 
 - (void)setResponseQueue:(dispatch_queue_t)queue{
     
@@ -171,7 +186,7 @@ int const kMaxAttempts = 3;
     
     debugLog(@"opening connection for request: %@", [self description]);
     
-    self.connection = [[NSURLConnection alloc] initWithRequest:self delegate:self];
+    self.connection = [[[NSURLConnection alloc] initWithRequest:self delegate:self] autorelease];
     self.responseData = [NSMutableData data];
     
     if(connection){
