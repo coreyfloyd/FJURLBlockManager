@@ -15,7 +15,6 @@
 		2899E5220DE3E06400AC0155 /* FJNetworkManagerViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2899E5210DE3E06400AC0155 /* FJNetworkManagerViewController.xib */; };
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
 		28D7ACF80DDB3853001CB0EB /* NetworkDemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 28D7ACF70DDB3853001CB0EB /* NetworkDemoViewController.m */; };
-		C40376A31201A3C4008D5257 /* FJOAuthURLRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = C40376A21201A3C4008D5257 /* FJOAuthURLRequest.m */; };
 		C40376D01201A418008D5257 /* NSMutableURLRequest+Parameters.m in Sources */ = {isa = PBXBuildFile; fileRef = C40376AA1201A416008D5257 /* NSMutableURLRequest+Parameters.m */; };
 		C40376D11201A418008D5257 /* NSString+URLEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = C40376AC1201A416008D5257 /* NSString+URLEncoding.m */; };
 		C40376D21201A418008D5257 /* NSURL+Base.m in Sources */ = {isa = PBXBuildFile; fileRef = C40376AE1201A416008D5257 /* NSURL+Base.m */; };
@@ -41,6 +40,7 @@
 		C48D79DF120F32700022E643 /* FJImageURLRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = C48D79DE120F32700022E643 /* FJImageURLRequest.m */; };
 		C48D79F6120F33460022E643 /* NSObject+AssociatedObjects.m in Sources */ = {isa = PBXBuildFile; fileRef = C48D79F5120F33460022E643 /* NSObject+AssociatedObjects.m */; };
 		C48D79FF120F339A0022E643 /* NSError+Vimeo.m in Sources */ = {isa = PBXBuildFile; fileRef = C48D79FE120F339A0022E643 /* NSError+Vimeo.m */; };
+		C4E7530C122116E500804CDB /* FJOAuthHeaderProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = C4E7530B122116E500804CDB /* FJOAuthHeaderProvider.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,8 +57,6 @@
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* FJBlockURLManager_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJBlockURLManager_Prefix.pch; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* FJBlockURLManager-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "FJBlockURLManager-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
-		C40376A11201A3C4008D5257 /* FJOAuthURLRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJOAuthURLRequest.h; sourceTree = "<group>"; };
-		C40376A21201A3C4008D5257 /* FJOAuthURLRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJOAuthURLRequest.m; sourceTree = "<group>"; };
 		C40376A91201A416008D5257 /* NSMutableURLRequest+Parameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableURLRequest+Parameters.h"; sourceTree = "<group>"; };
 		C40376AA1201A416008D5257 /* NSMutableURLRequest+Parameters.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableURLRequest+Parameters.m"; sourceTree = "<group>"; };
 		C40376AB1201A416008D5257 /* NSString+URLEncoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+URLEncoding.h"; sourceTree = "<group>"; };
@@ -110,6 +108,8 @@
 		C48D79F5120F33460022E643 /* NSObject+AssociatedObjects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+AssociatedObjects.m"; sourceTree = "<group>"; };
 		C48D79FD120F339A0022E643 /* NSError+Vimeo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+Vimeo.h"; sourceTree = "<group>"; };
 		C48D79FE120F339A0022E643 /* NSError+Vimeo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+Vimeo.m"; sourceTree = "<group>"; };
+		C4E7530A122116E500804CDB /* FJOAuthHeaderProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJOAuthHeaderProvider.h; sourceTree = "<group>"; };
+		C4E7530B122116E500804CDB /* FJOAuthHeaderProvider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJOAuthHeaderProvider.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -191,10 +191,10 @@
 		C40376A41201A3D0008D5257 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				C4E7530A122116E500804CDB /* FJOAuthHeaderProvider.h */,
+				C4E7530B122116E500804CDB /* FJOAuthHeaderProvider.m */,
 				C48D79DD120F32700022E643 /* FJImageURLRequest.h */,
 				C48D79DE120F32700022E643 /* FJImageURLRequest.m */,
-				C40376A11201A3C4008D5257 /* FJOAuthURLRequest.h */,
-				C40376A21201A3C4008D5257 /* FJOAuthURLRequest.m */,
 				C40C63C411FB6166008A66B9 /* FJBlockURLRequest.h */,
 				C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */,
 				C46C182811F68BE700377E8C /* FJBlockURLManager.h */,
@@ -344,7 +344,6 @@
 				C46C182A11F68BE700377E8C /* FJBlockURLManager.m in Sources */,
 				C468064811F7767900933E3B /* NSString+extensions.m in Sources */,
 				C40C63C611FB6166008A66B9 /* FJBlockURLRequest.m in Sources */,
-				C40376A31201A3C4008D5257 /* FJOAuthURLRequest.m in Sources */,
 				C40376D01201A418008D5257 /* NSMutableURLRequest+Parameters.m in Sources */,
 				C40376D11201A418008D5257 /* NSString+URLEncoding.m in Sources */,
 				C40376D21201A418008D5257 /* NSURL+Base.m in Sources */,
@@ -365,6 +364,7 @@
 				C48D79DF120F32700022E643 /* FJImageURLRequest.m in Sources */,
 				C48D79F6120F33460022E643 /* NSObject+AssociatedObjects.m in Sources */,
 				C48D79FF120F339A0022E643 /* NSError+Vimeo.m in Sources */,
+				C4E7530C122116E500804CDB /* FJOAuthHeaderProvider.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

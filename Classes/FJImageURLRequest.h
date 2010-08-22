@@ -1,3 +1,7 @@
+/*
+ Since both memory and disk caching are implemented, NSURL caching is disabled by defualt (unlike the superclass FJBlockURLConnection)
+ i.e. self.cacheResponse = NO;
+*/
 
 #import "FJBlockURLRequest.h"
 

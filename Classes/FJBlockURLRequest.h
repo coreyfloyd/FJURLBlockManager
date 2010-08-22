@@ -3,6 +3,8 @@
 
 @class FJBlockURLManager;
 
+@protocol FJBlockURLRequestHeaderDelegate;
+
 typedef void (^FJNetworkResponseHandler)(NSData* response);
 typedef void (^FJNetworkErrorHandler)(NSError* error);
 
@@ -18,6 +20,7 @@ typedef enum  {
 
 @interface FJBlockURLRequest : NSMutableURLRequest {
     
+    id<FJBlockURLRequestHeaderDelegate> headerDelegate;
     
 }
 
@@ -40,6 +43,9 @@ typedef enum  {
 
 @property (nonatomic, assign, readonly) FJBlockURLManager *manager; //should this run on a specific manager, defualt = [FJBlockURLManager defaultManager]
 
+@property (nonatomic, assign) BOOL cacheResponse; //default = YES
+
+@property (nonatomic, assign) id<FJBlockURLRequestHeaderDelegate> headerDelegate; //configures HTTP header(s) for the request. Useful for things like OAuth
 
 //info
 @property (readonly) BOOL isScheduled; //are we scheduled for download?
@@ -50,5 +56,13 @@ typedef enum  {
 @property (readonly) int attempt; //is this the first attempt?
 
 
+
+@end
+
+
+//TODO: add header delegate, use to add OAuth support
+@protocol FJBlockURLRequestHeaderDelegate
+@required
+- (void)setHeaderFieldsForRequest:(FJBlockURLRequest*)request;
 
 @end

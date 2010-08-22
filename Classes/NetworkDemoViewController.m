@@ -4,7 +4,7 @@
 #import "FJImageURLRequest.h"
 #import "FJBlockURLRequest.h"
 
-#define USE_IMAGE_REQ
+//#define USE_IMAGE_REQ
 
 @implementation NetworkDemoViewController
 
@@ -95,7 +95,7 @@
             if([each isEqualToString:@"http://farm5.static.flickr.com/4096/4808757119_21eb97ed7e.jpg"])
                 [[FJBlockURLManager defaultManager] suspend];
              */
-            
+                        
             UIImage* i = [UIImage imageWithData:result];
             
             NSLog(@"image fetched: %@", [i description]);

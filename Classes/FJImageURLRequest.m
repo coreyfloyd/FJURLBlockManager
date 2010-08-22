@@ -188,6 +188,8 @@ static NSCache* _imageCache = nil;
     
     if ((self = [super initWithURL:url])) {
         
+        [self setCachePolicy:NSURLRequestReloadIgnoringLocalCacheData];
+        self.cacheResponse = NO;
         self.subRequests = [NSMutableArray array];
     }
     
@@ -466,6 +468,7 @@ static NSCache* _imageCache = nil;
     //check mem cache
     if(useMemoryCache)
         i = [FJMasterImageBlockRequest cachedImageForURL:[self URL]];
+    
 
     if(i != nil && self.imageBlock){
         
@@ -475,14 +478,11 @@ static NSCache* _imageCache = nil;
             
         });
         
-        [self cancel];
+        [self cancel]; //found the image in a cache, cancel the request
 
         return;
     }
 
-    
-    
-    
     
     
     //check disk cache
@@ -508,7 +508,7 @@ static NSCache* _imageCache = nil;
             
         }); 
         
-        [self cancel];
+        [self cancel]; //found the image in a cache, cancel the request
         
         return;
     }

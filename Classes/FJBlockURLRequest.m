@@ -47,11 +47,17 @@ int const kMaxAttempts = 3;
 @synthesize attempt;
 @synthesize responseData;
 @synthesize maxAttempts;
+@synthesize headerDelegate;
+@synthesize cacheResponse;
+
+
 
 
 - (void) dealloc
 {
     
+    headerDelegate = nil;
+
     [responseData release];
     responseData = nil;    
    
@@ -74,6 +80,7 @@ int const kMaxAttempts = 3;
         self.workQueue = dispatch_queue_create([queueName UTF8String], NULL);
         self.maxAttempts = kMaxAttempts;
         self.responseQueue = dispatch_get_main_queue();
+        self.cacheResponse = YES;
         
     }
     return self;    
@@ -111,6 +118,8 @@ int const kMaxAttempts = 3;
 }
 
 - (void)scheduleWithNetworkManager:(FJBlockURLManager*)networkManager{
+    
+    [headerDelegate setHeaderFieldsForRequest:self];
     
     if(self.manager == nil){
         
@@ -216,6 +225,17 @@ int const kMaxAttempts = 3;
     [responseData appendData:data];
     
 }
+
+- (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse{
+    
+    if(!self.cacheResponse)
+        return nil;
+
+    return cachedResponse;
+    
+}
+
+
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     
