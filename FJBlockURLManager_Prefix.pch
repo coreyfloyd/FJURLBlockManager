@@ -5,5 +5,5 @@
     #import "NSString+extensions.h"
     #import "MacroUtilities.h"
     #import "NSObject+AssociatedObjects.h"
-    #import "NSError+Vimeo.h"
+    #import "NSError+FJNetwork.h"
 #endif

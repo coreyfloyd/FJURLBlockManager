@@ -4,7 +4,8 @@
 #import "OAToken.h"
 #import "OAHMAC_SHA1SignatureProvider.h"
 #import "OASignatureProviding.h"
-#import "OAMutableURLRequest.h"
+#import "OARequestParameter.h"
+#import "NSMutableURLRequest+Parameters.h"
 
 @interface FJOAuthHeaderProvider()
 
@@ -163,7 +164,7 @@
 
 
 #pragma mark -
-#pragma mark FJBlockURLRequestHeaderDelegate
+#pragma mark FJBlockURLRequestHeaderProvider
 
 - (void)setHeaderFieldsForRequest:(FJBlockURLRequest*)request{
     

@@ -1,28 +1,29 @@
 
 #import <UIKit/UIKit.h>
 
-extern NSString* const kVimeoErrorDomain;
+extern NSString* const FJNetworkErrorDomain;
 
 typedef enum  {
     
-    VimeoErrorUnknown,
-    VimeoErrorNilNetworkResponse,
-    VimeoErrorJSONParse,
-    VimeoErrorInvalidResponse,
-    VimeoErrorNotAuthenticated,
-    VimeoErrorCorruptImageResponse
+     FJNetworkErrorUnknown,
+     FJNetworkErrorNilNetworkResponse,
+     FJNetworkErrorJSONParse,
+     FJNetworkErrorInvalidResponse,
+     FJNetworkErrorNotAuthenticated,
+     FJNetworkErrorCorruptImageResponse
     
-} VimeoErrorType;
+} FJNetworkErrorType;
 
 extern NSString* const kUnparsedJSONStringKey;
 extern NSString* const kInvalidResponseDataKey;
 extern NSString* const kCorruptImageResponseDataKey;
 
 
-@interface NSError(Vimeo)
+@interface NSError(FJNetwork)
 
-+ (NSError*)errorWithVimeoErrorResponseDictionary:(NSDictionary*)dict;
++ (NSError*)errorWithErrorResponseDictionary:(NSDictionary*)dict;
 
++ (NSError*)invalidNetworkResponseErrorWithStatusCode:(int)status URL:(NSURL*)url;
 
 + (NSError*)nilNetworkRespnseErrorWithURL:(NSURL*)url;
 

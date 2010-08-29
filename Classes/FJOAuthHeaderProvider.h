@@ -5,7 +5,7 @@
 @class OAConsumer;
 @class OAToken;
 
-@interface FJOAuthHeaderProvider : NSObject <FJBlockURLRequestHeaderDelegate> {
+@interface FJOAuthHeaderProvider : NSObject <FJBlockURLRequestHeaderProvider> {
 
 }
 

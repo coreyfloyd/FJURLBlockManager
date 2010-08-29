@@ -1,16 +1,16 @@
 
-#import "NSError+Vimeo.h"
+#import "NSError+FJNetwork.h"
 
-NSString* const kVimeoErrorDomain = @"kVimeoErrorDomain";
+NSString* const FJNetworkErrorDomain = @"FJNetworkErrorDomain";
 NSString* const kUnparsedJSONStringKey = @"kUnparsedJSONStringKey";
 NSString* const kInvalidResponseDataKey = @"kInvalidResponseDataKey";
 NSString* const kCorruptImageResponseDataKey = @"kCorruptImageResponseDataKey";
 
 
 
-@implementation NSError(Vimeo)
+@implementation NSError(FJNetwork)
 
-+ (NSError*)errorWithVimeoErrorResponseDictionary:(NSDictionary*)dict{
++ (NSError*)errorWithErrorResponseDictionary:(NSDictionary*)dict{
     
     NSString* errorCode = [dict objectForKey:@"code"];
     NSString* description = [dict objectForKey:@"msg"];
@@ -19,22 +19,33 @@ NSString* const kCorruptImageResponseDataKey = @"kCorruptImageResponseDataKey";
                           description, NSLocalizedDescriptionKey, 
                           nil];
     
-    NSError* err = [NSError errorWithDomain:kVimeoErrorDomain code:[errorCode intValue] userInfo:newDict];
+    NSError* err = [NSError errorWithDomain: FJNetworkErrorDomain code:[errorCode intValue] userInfo:newDict];
     
     return err;
 }
 
 
-+ (NSError*)vimeoErrorWithCode:(VimeoErrorType)type localizedDescription:(NSString*)desc{
++ (NSError*)errorWithCode:(FJNetworkErrorType)type localizedDescription:(NSString*)desc{
      
     NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:desc, NSLocalizedDescriptionKey, nil];
     
-    NSError* err = [NSError errorWithDomain:kVimeoErrorDomain code:type userInfo:dict];
+    NSError* err = [NSError errorWithDomain: FJNetworkErrorDomain code:type userInfo:dict];
     
     return err;
     
 }
-
++ (NSError*)invalidNetworkResponseErrorWithStatusCode:(int)status URL:(NSURL*)url{
+    
+    NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:
+                          @"Invalid Network Status Code", NSLocalizedDescriptionKey, 
+                          url, NSURLErrorKey, 
+                          nil];   
+    
+    NSError* err = [NSError errorWithDomain:NSURLErrorDomain code:status userInfo:dict];
+    
+    return err;
+    
+}
 + (NSError*)nilNetworkRespnseErrorWithURL:(NSURL*)url{
     
     NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -42,7 +53,7 @@ NSString* const kCorruptImageResponseDataKey = @"kCorruptImageResponseDataKey";
                           url, NSURLErrorKey, 
                           nil];   
     
-    NSError* err = [NSError errorWithDomain:kVimeoErrorDomain code:VimeoErrorNilNetworkResponse userInfo:dict];
+    NSError* err = [NSError errorWithDomain: FJNetworkErrorDomain code:FJNetworkErrorNilNetworkResponse userInfo:dict];
     
     return err;
     
@@ -55,7 +66,7 @@ NSString* const kCorruptImageResponseDataKey = @"kCorruptImageResponseDataKey";
                           unparsedString, kUnparsedJSONStringKey, 
                           nil];
     
-    NSError* err = [NSError errorWithDomain:kVimeoErrorDomain code:VimeoErrorJSONParse userInfo:dict];
+    NSError* err = [NSError errorWithDomain: FJNetworkErrorDomain code:FJNetworkErrorJSONParse userInfo:dict];
 
     return err;
 
@@ -68,7 +79,7 @@ NSString* const kCorruptImageResponseDataKey = @"kCorruptImageResponseDataKey";
                           invalidData, kInvalidResponseDataKey, 
                           nil];
     
-    NSError* err = [NSError errorWithDomain:kVimeoErrorDomain code:VimeoErrorInvalidResponse userInfo:dict];
+    NSError* err = [NSError errorWithDomain: FJNetworkErrorDomain code:FJNetworkErrorInvalidResponse userInfo:dict];
     
     return err;
     
@@ -82,7 +93,7 @@ NSString* const kCorruptImageResponseDataKey = @"kCorruptImageResponseDataKey";
                 desc, NSLocalizedDescriptionKey, 
                 nil];   
     
-    NSError* err = [NSError errorWithDomain:kVimeoErrorDomain code:VimeoErrorUnknown userInfo:dict];
+    NSError* err = [NSError errorWithDomain: FJNetworkErrorDomain code:FJNetworkErrorUnknown userInfo:dict];
     
     return err;
 }
@@ -93,7 +104,7 @@ NSString* const kCorruptImageResponseDataKey = @"kCorruptImageResponseDataKey";
                           @"User not logged in", NSLocalizedDescriptionKey, 
                           nil];
     
-    NSError* err = [NSError errorWithDomain:kVimeoErrorDomain code:VimeoErrorNotAuthenticated userInfo:dict];
+    NSError* err = [NSError errorWithDomain: FJNetworkErrorDomain code:FJNetworkErrorNotAuthenticated userInfo:dict];
     
     return err;
     
@@ -108,7 +119,7 @@ NSString* const kCorruptImageResponseDataKey = @"kCorruptImageResponseDataKey";
                           url, NSURLErrorKey,
                           nil];
     
-    NSError* err = [NSError errorWithDomain:kVimeoErrorDomain code:VimeoErrorCorruptImageResponse userInfo:dict];
+    NSError* err = [NSError errorWithDomain: FJNetworkErrorDomain code:FJNetworkErrorCorruptImageResponse userInfo:dict];
     
     return err;
     

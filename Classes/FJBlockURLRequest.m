@@ -25,6 +25,12 @@ int const kMaxAttempts = 3;
 @property (readwrite) BOOL isFinished; 
 @property (readwrite) int attempt; 
 
+@property (readwrite) NSUInteger responseCode; 
+@property (nonatomic, retain, readwrite) NSMutableData *responseData; 
+@property (nonatomic, retain, readwrite) id formattedResponse; 
+@property (nonatomic, retain, readwrite) NSHTTPURLResponse* HTTPResponse; 
+
+
 @property (nonatomic, readwrite) dispatch_queue_t workQueue;
 @property (nonatomic, assign, readwrite) FJBlockURLManager *manager; 
 
@@ -49,18 +55,24 @@ int const kMaxAttempts = 3;
 @synthesize maxAttempts;
 @synthesize headerDelegate;
 @synthesize cacheResponse;
-
-
-
+@synthesize responseFormatter;
+@synthesize formattedResponse;
+@synthesize acceptedResponseCodes;
+@synthesize responseCode;
+@synthesize HTTPResponse;
 
 - (void) dealloc
 {
     
+    responseFormatter = nil;
     headerDelegate = nil;
 
     [responseData release];
     responseData = nil;    
-   
+    
+    [formattedResponse release];
+    formattedResponse  = nil;
+    
     [connection release];
     connection = nil;
     Block_release(completionBlock);
@@ -72,20 +84,6 @@ int const kMaxAttempts = 3;
     [super dealloc];
 }
 
-- (id)initWithURL: (NSURL*)theURL cachePolicy: (NSURLRequestCachePolicy)cachePolicy timeoutInterval: (NSTimeInterval)timeoutInterval
-{
-	if ((self = [super initWithURL: theURL cachePolicy: cachePolicy timeoutInterval: timeoutInterval])) {
-        
-        NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManagerRequest.%i", [self hash]];
-        self.workQueue = dispatch_queue_create([queueName UTF8String], NULL);
-        self.maxAttempts = kMaxAttempts;
-        self.responseQueue = dispatch_get_main_queue();
-        
-    }
-	return self;
-}
-
-/*
 - (id)initWithURL:(NSURL*)url{
     
     if ((self = [super initWithURL:url])) {
@@ -95,12 +93,13 @@ int const kMaxAttempts = 3;
         self.maxAttempts = kMaxAttempts;
         self.responseQueue = dispatch_get_main_queue();
         self.cacheResponse = YES;
+        self.acceptedResponseCodes = [NSMutableIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 100)];
+        self.responseCode = 0;
         
     }
     return self;    
     
 }
-*/
 
 - (void)setResponseQueue:(dispatch_queue_t)queue{
     
@@ -186,7 +185,7 @@ int const kMaxAttempts = 3;
     
     debugLog(@"opening connection for request: %@", [self description]);
     
-    self.connection = [[[NSURLConnection alloc] initWithRequest:self delegate:self] autorelease];
+    self.connection = [[NSURLConnection alloc] initWithRequest:self delegate:self];
     self.responseData = [NSMutableData data];
     
     if(connection){
@@ -225,6 +224,13 @@ int const kMaxAttempts = 3;
     
     if(![[NSThread currentThread] isEqual:self.connectionThread]){
         ALWAYS_ASSERT;
+    }
+    
+    if([response isKindOfClass:[NSHTTPURLResponse class]]){
+        
+        self.HTTPResponse = (NSHTTPURLResponse*)response;
+        int code = [self.HTTPResponse statusCode];
+        self.responseCode = code;
     }
     
     [responseData setLength:0];
@@ -297,23 +303,66 @@ int const kMaxAttempts = 3;
         ALWAYS_ASSERT;
     }
     
-    if(completionBlock){
-
-        __block NSData* data = [self.responseData copy];
+    __block id response = self.responseData;
+    
+    //catch unaccepted response codes
+    if(![self.acceptedResponseCodes containsIndex:self.responseCode]){
         
-        void (^responseBlock)() = ^() {
-            //NSLog(@"Queue check: %@", [self.responseData description]);
-            self.completionBlock(data);
-        };
+        if(self.failureBlock){
+         
+            dispatch_async(self.responseQueue, ^{
+                
+                self.failureBlock([NSError invalidNetworkResponseErrorWithStatusCode:self.responseCode URL:[self URL]]);
+                
+            });
+        }
+    }else{
         
-        responseBlock = [responseBlock copy]; 
-        
-        dispatch_async(self.responseQueue, responseBlock);
-        
-        [responseBlock release];
-        
+        if(self.responseFormatter == nil){
+            
+            if(self.completionBlock){
+                
+                dispatch_async(self.responseQueue, ^{
+                    
+                    self.completionBlock(response);
+                    
+                });
+            }
+            
+        }else if(self.responseFormatter != nil){
+            
+            __block id val = nil;
+            
+            if(response != nil && [response length] > 0)
+                val = [self.responseFormatter formatResponse:response];
+            
+            if([val isKindOfClass:[NSError class]]){
+                
+                if(self.failureBlock){
+                    
+                    dispatch_async(self.responseQueue, ^{
+                        
+                        self.failureBlock([NSError nilNetworkRespnseErrorWithURL:[self URL]]);
+                        
+                    });
+                }
+            }else{
+                
+                self.formattedResponse = val;
+                
+                if(self.completionBlock){
+                    
+                    dispatch_async(self.responseQueue, ^{
+                        
+                        self.completionBlock(val);
+                        
+                    });
+                }
+            } 
+        }
     }
     
+        
     dispatch_async(self.workQueue, ^{
         //NSLog(@"Doublecheck: %@", [data description]);
         self.isFinished = YES;
