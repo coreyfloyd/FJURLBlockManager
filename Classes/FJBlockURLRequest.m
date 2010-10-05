@@ -267,7 +267,9 @@ int const kMaxAttempts = 3;
         
         responseBlock = [responseBlock copy]; 
         
-        dispatch_async(self.responseQueue, responseBlock);
+        dispatch_async(self.responseQueue, ^{
+            responseBlock();
+        });
         
         [responseBlock release];
         
