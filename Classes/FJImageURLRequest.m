@@ -102,8 +102,7 @@ BOOL writeImageToFile(UIImage* image, NSString* path){
 
 @interface FJImageURLRequest()
 
-@property (nonatomic, readwrite) FJMasterImageBlockRequest* masterRequest;
-- (id)initWithMasterRequest:(FJMasterImageBlockRequest*)masterReq;
+@property (nonatomic,retain,readwrite) FJMasterImageBlockRequest* masterRequest;
 
 @end
 
@@ -125,6 +124,8 @@ static NSCache* _imageCache = nil;
 
 + (FJMasterImageBlockRequest*)requestForURL:(NSURL*)url;
 
+- (void)addSubRequest:(FJImageURLRequest*)req;
+- (void)removeSubRequest:(FJImageURLRequest*)req;
 - (void)cancelSubRequest:(FJImageURLRequest*)req;
 
 
@@ -183,6 +184,13 @@ static NSCache* _imageCache = nil;
 
 #pragma mark NSObject
 
+- (void) dealloc
+{
+    [subRequests release];
+    subRequests = nil;
+    [super dealloc];
+}
+
 
 - (id)initWithURL:(NSURL*)url{
     
@@ -201,10 +209,15 @@ static NSCache* _imageCache = nil;
 
 - (void)scheduleWithNetworkManager:(FJBlockURLManager *)networkManager{
     
-    if(self.inProcess)
+    //TODO: hmm, should we be checking for FJBlockURLStatusScheduled as well?
+    if(self.status == FJBlockURLStatusRunning)
         return;
     
     self.responseQueue = self.workQueue;
+    
+    NSArray* subReqs = [self subRequests];
+    
+    
     
     //create image block
     self.completionBlock = ^(NSData* response){
@@ -217,7 +230,7 @@ static NSCache* _imageCache = nil;
             
             NSError* error = [NSError corruptImageResponse:[self URL] data:response];
             
-            for(FJImageURLRequest* each in self.subRequests){
+            for(FJImageURLRequest* each in subReqs){
                 
                 FJNetworkErrorHandler e = [each failureBlock];
                 
@@ -228,17 +241,21 @@ static NSCache* _imageCache = nil;
                     });
                 }
                 
-                //remeove finished subrequest
-                [self cancelSubRequest:each];
+                dispatch_async(self.workQueue, ^{
+                    //remeove finished subrequest
+                    [self removeSubRequest:each];
+                });
+                
             }
             
+            //remove finished request
             [FJMasterImageBlockRequest setRequest:nil forURL:[self URL]];
             
             return;
         }
         
         //return image
-        for(FJImageURLRequest* each in self.subRequests){
+        for(FJImageURLRequest* each in subReqs){
             
             FJImageResponseHandler r = [each imageBlock];
             
@@ -249,8 +266,11 @@ static NSCache* _imageCache = nil;
                 });
             }
             
-            //remeove finished subrequest
-            [self cancelSubRequest:each];
+            dispatch_async(self.workQueue, ^{
+                //remeove finished subrequest
+                [self removeSubRequest:each];
+            });
+            
         }
         
         
@@ -273,13 +293,11 @@ static NSCache* _imageCache = nil;
 
     };
     
-    
-    
-    
     //create error block
     self.failureBlock = ^(NSError* error){
         
-      for(FJImageURLRequest* each in self.subRequests){
+        
+      for(FJImageURLRequest* each in subReqs){
           
           FJNetworkErrorHandler e = [each failureBlock];
           
@@ -292,7 +310,7 @@ static NSCache* _imageCache = nil;
           }
           
           //remeove finished subrequest
-          [self cancelSubRequest:each];
+          [self removeSubRequest:each];
       }
         //remove finished request
         [FJMasterImageBlockRequest setRequest:nil forURL:[self URL]];
@@ -313,19 +331,25 @@ static NSCache* _imageCache = nil;
     
 }
 
+- (void)addSubRequest:(FJImageURLRequest*)req{
+    
+    if([self.subRequests containsObject:req])
+        return;
+    
+    req.masterRequest = self;
+    [self.subRequests addObject:req];
+    
+}
+- (void)removeSubRequest:(FJImageURLRequest*)req{
+    
+    req.masterRequest = nil;
+    [self.subRequests removeObject:req];
+
+}
 
 - (void)cancelSubRequest:(FJImageURLRequest*)req{
     
-    req.masterRequest = nil;
-    
-    int i = [self.subRequests indexOfObject:req];
-    
-    if(i == NSNotFound){
-        ALWAYS_ASSERT;
-    }
-    
-    [self.subRequests removeObjectAtIndex:i];
-    
+    [self removeSubRequest:req];    
     [self cancel];
     
 }
@@ -420,6 +444,14 @@ static NSCache* _imageCache = nil;
 #pragma mark FJImageURLRequest
 
 
+@interface FJBlockURLRequest(FJImageURLRequest)
+
+@property (readwrite) FJBlockURLStatusType status; 
+
+@end
+
+
+
 @implementation FJImageURLRequest
 
 @synthesize imageBlock;
@@ -432,22 +464,21 @@ static NSCache* _imageCache = nil;
 
 + (id)requestWithURL:(NSURL*)url{
     
-    FJMasterImageBlockRequest* r = [FJMasterImageBlockRequest requestForURL:url];
-
-    FJImageURLRequest* newReq = [[FJImageURLRequest alloc] initWithMasterRequest:r];
-    
-    [r.subRequests addObject:newReq];
-    
+    FJImageURLRequest* newReq = [[FJImageURLRequest alloc] initWithURL:url];
     return [newReq autorelease];
 }
 
-- (id)initWithMasterRequest:(FJMasterImageBlockRequest*)masterReq{
+- (id)initWithURL:(NSURL*)url{
     
-    if ((self = [super initWithURL:[masterReq URL]])) {
+    if(url == nil){
+        //ALWAYS_ASSERT;
+        return nil;
+    }
+    
+    if ((self = [super initWithURL:url])) {
         
         self.useDiskCache = YES;
         self.useMemoryCache = YES;
-        self.masterRequest = masterReq;
     }
     
     return self;
@@ -459,10 +490,10 @@ static NSCache* _imageCache = nil;
     
     //just in case out master request was lost, or we were rescheduled
     
-    self.masterRequest = [FJMasterImageBlockRequest requestForURL:[self URL]];
+    FJMasterImageBlockRequest* r = [FJMasterImageBlockRequest requestForURL:[self URL]];
+    [r addSubRequest:self];
     
-    
-    
+        
     UIImage* i = nil;
     
     //check mem cache
@@ -523,6 +554,7 @@ static NSCache* _imageCache = nil;
 
 - (void)cancel{
     
+    self.status = FJBlockURLStatusCancelled;
     [self.masterRequest cancelSubRequest:self];
     
 }

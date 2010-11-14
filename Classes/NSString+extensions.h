@@ -64,6 +64,7 @@ enum {
 //also tests if string is a single space
 - (BOOL)isEmpty;
 
++ (NSString*)GUIDString;
 - (NSString*)md5;
 
 /*
@@ -74,6 +75,11 @@ enum {
 - (NSString*)stringByTruncatingToLength:(int)length direction:(NSTruncateStringPosition)truncateFrom withEllipsisString:(NSString*)ellipsis;
 
 
+- (NSString*)stringByTrimmingWhiteSpace;
+
+
+- (NSString*)stringByPreparingForURL;
+
 
 
 
@@ -81,6 +87,7 @@ enum {
 
 @interface NSString (NumberStuff) 
 
++ (NSString*)secondsToStringWithHours:(int)seconds;
 + (NSString*)stringWithInt:(int)anInteger;
 + (NSString*)stringWithFloat:(float)aFloat decimalPlaces:(int)decimalPlaces;
 
@@ -94,6 +101,33 @@ enum {
  */
 - (long)longValue;
 - (long long)longLongValue;
+
+
+@end
+
+
+typedef enum {
+	StringValidationTypeEmail = 0,
+	StringValidationTypePhone
+} StringValidationType;
+
+@interface NSString (Validation)
+
+
++ (NSPredicate *)predicateForWhiteSpace;
++ (NSPredicate *)predicateForEmail;
++ (NSPredicate *)predicateForPhone;
+
+
+- (BOOL)isValid:(int)type acceptWhiteSpace:(BOOL)acceptWhiteSpace;
+
+@end
+
+
+
+@interface NSMutableString (charManipulation)
+
+- (void)removeLastCharacter;
 
 
 @end

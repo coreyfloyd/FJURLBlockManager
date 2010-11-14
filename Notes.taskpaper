@@ -1,0 +1,22 @@
+
+Todos:
+	- direct file save url
+	- form
+	- adapter
+	- completionhandler as anonymous block?
+
+Adapters:
+ Generic Adapter (default behavior)
+ Incremental Adapter (saving file as it comes in, progress)
+ Upload Adapter (progress)
+ 
+
+ Proposed Adapter Fnctionality:
+ queue
+ NSURLConnectionDelegate
+ - (BOOL)acceptResponseCode;
+ - (int)maxAttempts
+ 
+ Responsible for
+ all blocks, formatting response (still use formatter chain)
+ 

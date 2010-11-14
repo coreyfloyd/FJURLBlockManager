@@ -80,7 +80,6 @@
     
 #else
     
-    [[FJBlockURLManager defaultManager] setMaxConcurrentRequests:1];
         
     for(NSString* each in a){
         

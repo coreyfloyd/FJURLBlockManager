@@ -5,8 +5,14 @@
 @class OAConsumer;
 @class OAToken;
 
+typedef enum  {
+    FJOAuthHeaderTokenRequest,
+    FJOAuthHeaderAuthorizationRequest
+} FJOAuthHeaderType;
+
 @interface FJOAuthHeaderProvider : NSObject <FJBlockURLRequestHeaderProvider> {
 
+    FJOAuthHeaderType type;
 }
 
 + (FJOAuthHeaderProvider*)authorizationHeaderProviderWithConsumer:(OAConsumer*)aConsumer;

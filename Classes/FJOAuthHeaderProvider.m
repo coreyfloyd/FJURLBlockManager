@@ -4,8 +4,6 @@
 #import "OAToken.h"
 #import "OAHMAC_SHA1SignatureProvider.h"
 #import "OASignatureProviding.h"
-#import "OARequestParameter.h"
-#import "NSMutableURLRequest+Parameters.h"
 
 @interface FJOAuthHeaderProvider()
 
@@ -16,8 +14,7 @@
 @property (nonatomic, copy) NSString *nonce;
 @property (nonatomic, copy) NSString *timestamp;
 
-@property (nonatomic, assign) BOOL isLoginHeader;
-
+@property (nonatomic) FJOAuthHeaderType type;
 
 
 - (NSString *)_signatureBaseStringForRequest:(FJBlockURLRequest*)request;
@@ -38,14 +35,15 @@
 @synthesize signatureProvider;
 @synthesize nonce;
 @synthesize timestamp;
-@synthesize isLoginHeader;
 @synthesize username;
 @synthesize password;
+@synthesize type;
+
+
 
 
 - (void) dealloc
 {
-    
     [username release];
     username = nil;
     [password release];
@@ -101,18 +99,18 @@
 
 + (FJOAuthHeaderProvider*)headerproviderWithConsumer:(OAConsumer*)aConsumer accessToken:(OAToken*)aToken{
     
-    return [[[[self class] alloc] initWithConsumer:aConsumer accessToken:aToken] autorelease];
+    FJOAuthHeaderProvider* p = [[[self class] alloc] initWithConsumer:aConsumer accessToken:aToken];
+    p.type = FJOAuthHeaderAuthorizationRequest;
+    return [p autorelease];
     
 }
 
 + (FJOAuthHeaderProvider*)authorizationHeaderProviderWithConsumer:(OAConsumer*)aConsumer{
 
     FJOAuthHeaderProvider* p = [[[self class] alloc] initWithConsumer:aConsumer];
-    p.isLoginHeader = YES;
+    p.type = FJOAuthHeaderTokenRequest;
     return [p autorelease];
 }
-
-
 
 
 - (void)_generateTimestamp {
@@ -171,15 +169,17 @@
     [self _generateTimestamp];
     [self _generateNonce];
     
-    if(isLoginHeader){
+    if(type == FJOAuthHeaderTokenRequest){
         
         [request setParameters:[NSArray arrayWithObjects:
                                 [OARequestParameter requestParameter:@"x_auth_mode" value:@"client_auth"],
                                 [OARequestParameter requestParameter:@"x_auth_username" value:username],
                                 [OARequestParameter requestParameter:@"x_auth_password" value:password],
-                                [OARequestParameter requestParameter:@"x_auth_permission" value:@"write"],
+                                [OARequestParameter requestParameter:@"x_auth_permission" value:@"delete"],
                                 nil]];		
     }
+   
+
     
     // sign
     //	NSLog(@"Base string is: %@", [self _signatureBaseString]);

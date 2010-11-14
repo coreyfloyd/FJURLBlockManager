@@ -1,13 +1,9 @@
-//
-//  FJJSONResponseFormatter.m
-//  Vimeo
-//
-//  Created by Corey Floyd on 8/25/10.
-//  Copyright 2010 Flying Jalapeño. All rights reserved.
-//
+
+#define USE_JSON_KIT
 
 #import "FJJSONResponseFormatter.h"
 #import "JSONKit.h"
+//#import "SBJSON.h"
 
 @implementation FJJSONResponseFormatter
 
@@ -21,6 +17,7 @@
     [super dealloc];
 }
 
+#ifdef USE_JSON_KIT
 
 - (id)formatResponse:(id)response{
     
@@ -29,7 +26,7 @@
     
     NSString* responseString = [[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding];
     
-    debugLog(@"recieved jsonString: %@", responseString);
+    extendedDebugLog(@"recieved jsonString: %@", responseString);
     
     NSError* error = nil;
     
@@ -57,5 +54,39 @@
     return finalResponse;
 }
 
+#else
+
+- (id)formatResponse:(id)response{
+    
+    if(response == nil)
+        return nil;
+    
+    NSString* responseString = [[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding];
+    
+    extendedDebugLog(@"recieved jsonString: %@", responseString);
+    
+    NSError* error = nil;
+    
+    id jsonObject = nil;
+    
+    if(responseString != nil && ![responseString isEmpty]){
+        
+        SBJSON* sb = [[SBJSON alloc] init];
+        jsonObject = [sb objectWithString:responseString error:&error];
+        [sb release];
+            
+        if(jsonObject == nil)
+            return error;
+    }
+    
+    id finalResponse = jsonObject;
+    
+    if(nextFormatter != nil)
+        finalResponse = [nextFormatter formatResponse:finalResponse];
+    
+    return finalResponse;
+}
+
+#endif
 
 @end

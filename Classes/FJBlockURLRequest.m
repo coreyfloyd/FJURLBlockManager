@@ -3,13 +3,16 @@
 
 //#define USE_CHARLES_PROXY
 
+
+
 NSString* const FJBlockURLErrorDomain = @"FJBlockURLErrorDomain";
+
+
+
 
 @interface FJBlockURLManager (FJBlockURLRequest)
 
 - (void)scheduleRequest:(FJBlockURLRequest*)req;
-- (void)cancelRequest:(FJBlockURLRequest*)req;
-
 
 @end
 
@@ -20,21 +23,27 @@ int const kMaxAttempts = 3;
 @property (nonatomic, retain) NSThread *connectionThread;
 @property (nonatomic, retain) NSURLConnection *connection;
 
-@property (readwrite) BOOL isScheduled; 
-@property (readwrite) BOOL inProcess; 
-@property (readwrite) BOOL isFinished; 
+@property (readwrite) FJBlockURLStatusType status; 
 @property (readwrite) int attempt; 
 
 @property (readwrite) NSUInteger responseCode; 
 @property (nonatomic, retain, readwrite) NSMutableData *responseData; 
 @property (nonatomic, retain, readwrite) id formattedResponse; 
 @property (nonatomic, retain, readwrite) NSHTTPURLResponse* HTTPResponse; 
+@property (nonatomic, readwrite) long long expectedResponseDataLength; 
+@property (nonatomic, readwrite) long long responseDataLength;
 
+@property (nonatomic, retain, readwrite) NSMutableIndexSet* acceptedResponseCodes; 
 
 @property (nonatomic, readwrite) dispatch_queue_t workQueue;
 @property (nonatomic, assign, readwrite) FJBlockURLManager *manager; 
 
-- (void)openConnection;
+- (void)_openConnection;
+
+- (void)_handleResponseError:(NSError*)error;
+- (void)_dipatchSuccessfulResponse;
+- (void)_dispatchUnsuccessfulResponseWithError:(NSError*)error;
+
 
 @end
 
@@ -46,27 +55,37 @@ int const kMaxAttempts = 3;
 @synthesize connection;
 @synthesize responseQueue;
 @synthesize completionBlock;
+@synthesize uploadProgressBlock;
 @synthesize failureBlock;
-@synthesize isScheduled;
-@synthesize inProcess;
-@synthesize isFinished;
 @synthesize attempt;
 @synthesize responseData;
 @synthesize maxAttempts;
-@synthesize headerDelegate;
+@synthesize headerProvider;
 @synthesize cacheResponse;
 @synthesize responseFormatter;
 @synthesize formattedResponse;
 @synthesize acceptedResponseCodes;
 @synthesize responseCode;
 @synthesize HTTPResponse;
+@synthesize status;
+@synthesize requestStartedBlock;
+@synthesize incrementalResponseBlock;
+@synthesize retainAndAppendResponseData;
+@synthesize expectedResponseDataLength;
+@synthesize responseDataLength;
+@synthesize uploadFileURL;
+
+
 
 - (void) dealloc
 {
     
     responseFormatter = nil;
-    headerDelegate = nil;
-
+    headerProvider = nil;
+    
+    [uploadFileURL release];
+    uploadFileURL = nil;
+    
     [responseData release];
     responseData = nil;    
     
@@ -75,18 +94,24 @@ int const kMaxAttempts = 3;
     
     [connection release];
     connection = nil;
+    
+    Block_release(incrementalResponseBlock);
+    Block_release(requestStartedBlock);
+    Block_release(uploadProgressBlock);
     Block_release(completionBlock);
     Block_release(failureBlock);
+    
     dispatch_release(responseQueue);  
     dispatch_release(workQueue);
+    
     [connectionThread release];
     connectionThread = nil; 
     [super dealloc];
 }
 
-- (id)initWithURL:(NSURL*)url{
+- (id)initWithURL:(NSURL *)url cachePolicy:(NSURLRequestCachePolicy)cachePolicy timeoutInterval:(NSTimeInterval)timeoutInterval{
     
-    if ((self = [super initWithURL:url])) {
+    if ((self = [super initWithURL:url cachePolicy:cachePolicy timeoutInterval:timeoutInterval])) {
         
         NSString* queueName = [NSString stringWithFormat:@"com.FJNetworkManagerRequest.%i", [self hash]];
         self.workQueue = dispatch_queue_create([queueName UTF8String], NULL);
@@ -94,10 +119,11 @@ int const kMaxAttempts = 3;
         self.responseQueue = dispatch_get_main_queue();
         self.cacheResponse = YES;
         self.acceptedResponseCodes = [NSMutableIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 100)];
-        self.responseCode = 0;
+        self.retainAndAppendResponseData = YES;
         
     }
     return self;    
+    
     
 }
 
@@ -133,18 +159,20 @@ int const kMaxAttempts = 3;
 
 - (void)scheduleWithNetworkManager:(FJBlockURLManager*)networkManager{
     
-    [headerDelegate setHeaderFieldsForRequest:self];
-    
-    if(self.manager == nil){
+    [headerProvider setHeaderFieldsForRequest:self];
         
-        self.manager = networkManager;
+    if(self.manager != nil && self.manager != networkManager){
+        
+        ALWAYS_ASSERT;
     }    
     
+    self.status = FJBlockURLStatusScheduled;
+    
+    self.manager = networkManager;
+
     [networkManager scheduleRequest:self];
     
 }
-
-
 
 - (BOOL)start{
     
@@ -152,15 +180,14 @@ int const kMaxAttempts = 3;
     
     dispatch_sync(self.workQueue, ^{
         
-        if(inProcess){
+        if(self.status == FJBlockURLStatusRunning){
             didStart = NO;
             return;
         }
         
-        debugLog(@"manager: %@ starting request: %@", [self.manager description], [self description]);
+        extendedDebugLog(@"manager: %@ starting request: %@", [self.manager description], [self description]);
 
-        
-        self.inProcess = YES;
+        self.status = FJBlockURLStatusRunning;
         self.attempt = 0;
                 
         if(!self.responseQueue){
@@ -169,31 +196,45 @@ int const kMaxAttempts = 3;
             
         }
         
-        [self performSelector:@selector(openConnection) onThread:self.connectionThread withObject:nil waitUntilDone:NO];
+        if(self.requestStartedBlock)
+            dispatch_sync(self.responseQueue, self.requestStartedBlock);
+        
+        [self performSelector:@selector(_openConnection) onThread:self.connectionThread withObject:nil waitUntilDone:NO];
         
     });
     
     return didStart;
 }
 
-- (void)openConnection{
+- (void)_openConnection{
     
     if(![[NSThread currentThread] isEqual:self.connectionThread]){
-        [self performSelector:@selector(openConnection) onThread:self.connectionThread withObject:nil waitUntilDone:NO];
+        [self performSelector:@selector(_openConnection) onThread:self.connectionThread withObject:nil waitUntilDone:NO];
         return;
     }
     
-    debugLog(@"opening connection for request: %@", [self description]);
+    extendedDebugLog(@"opening connection for request: %@", [self description]);
     
     self.connection = [[NSURLConnection alloc] initWithRequest:self delegate:self];
-    self.responseData = [NSMutableData data];
+   
+    if(retainAndAppendResponseData)
+        self.responseData = [NSMutableData data];
     
     if(connection){
         
         dispatch_async(self.workQueue, ^{
             
-            self.isFinished = NO;
+            self.status = FJBlockURLStatusRunning;
+            self.attempt++;
+            self.responseCode = 0;
+            self.expectedResponseDataLength = 0;
+            self.responseDataLength = 0;
             
+            if(self.uploadFileURL == nil){
+                [self setHTTPBodyStream:nil];   
+            }else{
+                [self setHTTPBodyStream:[NSInputStream inputStreamWithURL:self.uploadFileURL]];
+            }
         });
         
     }else{
@@ -220,6 +261,21 @@ int const kMaxAttempts = 3;
 #endif
 
 
+- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite{
+    
+    //NSLog(@"uploaded bytes: %i total bytes uploaded: %i total to write: %i", bytesWritten, totalBytesWritten, totalBytesExpectedToWrite);
+    
+    if(self.uploadProgressBlock){
+        
+        dispatch_async(self.responseQueue, ^{
+           
+            self.uploadProgressBlock(totalBytesWritten, totalBytesExpectedToWrite);
+            
+        });
+
+    }
+}
+
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     
     if(![[NSThread currentThread] isEqual:self.connectionThread]){
@@ -231,6 +287,7 @@ int const kMaxAttempts = 3;
         self.HTTPResponse = (NSHTTPURLResponse*)response;
         int code = [self.HTTPResponse statusCode];
         self.responseCode = code;
+        self.expectedResponseDataLength = [self.HTTPResponse expectedContentLength];
     }
     
     [responseData setLength:0];
@@ -243,8 +300,20 @@ int const kMaxAttempts = 3;
         ALWAYS_ASSERT;
     }
     
-    [responseData appendData:data];
+    if(self.retainAndAppendResponseData)
+        [responseData appendData:data];
     
+    self.responseDataLength += [data length];
+    
+    if(self.incrementalResponseBlock){
+        
+        dispatch_async(self.responseQueue, ^{
+           
+            self.incrementalResponseBlock(data, self.responseDataLength, self.expectedResponseDataLength);
+            
+        });
+    }
+        
 }
 
 - (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse{
@@ -264,36 +333,18 @@ int const kMaxAttempts = 3;
         ALWAYS_ASSERT;
     }
     
+     if([self.acceptedResponseCodes containsIndex:self.responseCode]){
+         
+         [self _dipatchSuccessfulResponse];
+     }
+    
     dispatch_async(self.workQueue, ^{
         
-        NSString *failureMessage = [NSString stringWithFormat:@"Connection failed: %@", [error description]];
+        NSString *failureMessage = [NSString stringWithFormat:@"Connection failed for request: %@ error: %@", [self description], [error description]];
         NSLog(@"%@", failureMessage);
         
-        self.attempt++;
+        [self _handleResponseError:error];
         
-        if(self.attempt > self.maxAttempts){
-            
-            self.responseData = nil;
-        
-            if(responseQueue && failureBlock){
-                
-                dispatch_async(self.responseQueue, ^{
-                    
-                    self.failureBlock(error);
-                    
-                });
-                
-            }
-            
-            self.isFinished = YES;
-            self.inProcess = NO;
-
-            
-        }else{
-            
-            [self openConnection];
-            
-        }
     });
 }
 
@@ -303,73 +354,116 @@ int const kMaxAttempts = 3;
         ALWAYS_ASSERT;
     }
     
-    __block id response = self.responseData;
+	//NSString * str = [[NSString alloc] initWithData:self.responseData encoding:NSUTF8StringEncoding];
+	//NSLog(@"error response: %@ " , str);
+	
+    extendedDebugLog(@"connection completed for request: %@", [self description]);
     
     //catch unaccepted response codes
     if(![self.acceptedResponseCodes containsIndex:self.responseCode]){
         
-        if(self.failureBlock){
-         
+        [self _handleResponseError:[NSError invalidNetworkResponseErrorWithStatusCode:self.responseCode URL:[self URL]]];
+        
+    }else{
+        
+        [self _dipatchSuccessfulResponse];
+                
+    }
+    
+      
+    
+}
+
+- (void)_dipatchSuccessfulResponse{
+    
+    __block id response = self.responseData;
+
+    self.manager = nil;
+    
+    dispatch_async(self.workQueue, ^{
+        //NSLog(@"Doublecheck: %@", [data description]);
+        self.status = FJBlockURLStatusFinished;
+    });
+
+    
+    if(self.responseFormatter == nil){
+        
+        if(self.completionBlock){
+            
             dispatch_async(self.responseQueue, ^{
                 
-                self.failureBlock([NSError invalidNetworkResponseErrorWithStatusCode:self.responseCode URL:[self URL]]);
+                self.completionBlock(response);
                 
             });
         }
-    }else{
         
-        if(self.responseFormatter == nil){
+    }else if(self.responseFormatter != nil){
+        
+        id val = nil;
+        
+        if(response != nil && [response length] > 0)
+            val = [self.responseFormatter formatResponse:response];
+        
+        if([val isKindOfClass:[NSError class]]){
+            
+            if(self.failureBlock){
+                
+                dispatch_async(self.responseQueue, ^{
+                    
+                    //self.failureBlock([NSError nilNetworkRespnseErrorWithURL:[self URL]]); //dont know why this was here???
+					self.failureBlock(val);
+                    
+                });
+            }
+        }else{
+            
+            self.formattedResponse = val;
             
             if(self.completionBlock){
                 
                 dispatch_async(self.responseQueue, ^{
                     
-                    self.completionBlock(response);
+                    self.completionBlock(val);
                     
                 });
             }
-            
-        }else if(self.responseFormatter != nil){
-            
-            __block id val = nil;
-            
-            if(response != nil && [response length] > 0)
-                val = [self.responseFormatter formatResponse:response];
-            
-            if([val isKindOfClass:[NSError class]]){
-                
-                if(self.failureBlock){
-                    
-                    dispatch_async(self.responseQueue, ^{
-                        
-                        self.failureBlock([NSError nilNetworkRespnseErrorWithURL:[self URL]]);
-                        
-                    });
-                }
-            }else{
-                
-                self.formattedResponse = val;
-                
-                if(self.completionBlock){
-                    
-                    dispatch_async(self.responseQueue, ^{
-                        
-                        self.completionBlock(val);
-                        
-                    });
-                }
-            } 
-        }
+        } 
     }
+}
+
+- (void)_handleResponseError:(NSError*)error{
     
+    
+    if(self.attempt >= self.maxAttempts){
+                
+        self.attempt = 0;
+
+        self.responseData = nil;
         
-    dispatch_async(self.workQueue, ^{
-        //NSLog(@"Doublecheck: %@", [data description]);
-        self.isFinished = YES;
-        self.inProcess = NO;
+        [self _dispatchUnsuccessfulResponseWithError:error];
+        
+        self.status = FJBlockURLStatusError;
+        
+        
+    }else{
+        
+        [self _openConnection];
+        
+    }
+}
+
+- (void)_dispatchUnsuccessfulResponseWithError:(NSError*)error{
+    
+    if(!self.responseQueue || !self.failureBlock)
+        return;
+      
+    self.manager = nil;
+
+    dispatch_async(self.responseQueue, ^{
+        
+        self.failureBlock(error);
+        
     });
-    
-    
 }
 
 
@@ -387,33 +481,15 @@ int const kMaxAttempts = 3;
                    withObject:nil 
                 waitUntilDone:NO]; 
         
-        
-        //we never finished, but are being cancelled we should send the error block
-        if(self.isFinished == NO){
-            
-            NSDictionary* d = [NSDictionary dictionaryWithObject:@"Request was cancelled" forKey:NSLocalizedDescriptionKey];
-            
-            NSError* error = [NSError errorWithDomain:FJBlockURLErrorDomain code:FJBlockURLErrorCancelled userInfo:d];
-            
-            if(responseQueue && failureBlock){
+        self.responseCode = NSURLErrorCancelled;
+        [self _dispatchUnsuccessfulResponseWithError:[NSError cancelledNetworkRequestWithURL:[self URL]]];
+
+        self.status = FJBlockURLStatusCancelled;
                 
-                dispatch_async(self.responseQueue, ^{
-                    
-                    self.failureBlock(error);
-                    
-                });
-                
-            }
-        }
-        
-        self.isFinished = NO;
-        self.inProcess = NO;
-        
     });
     
-    [self.manager cancelRequest:self];
-    
 }
+
 
 
 @end

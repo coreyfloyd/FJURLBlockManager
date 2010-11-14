@@ -46,6 +46,20 @@ NSString* const kCorruptImageResponseDataKey = @"kCorruptImageResponseDataKey";
     return err;
     
 }
+
++ (NSError*)cancelledNetworkRequestWithURL:(NSURL*)url{
+    
+    NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:
+                          @"Request was cancelled", NSLocalizedDescriptionKey, 
+                          url, NSURLErrorKey, 
+                          nil];   
+    
+    NSError* err = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorCancelled userInfo:dict];
+    
+    return err;
+    
+    
+}
 + (NSError*)nilNetworkRespnseErrorWithURL:(NSURL*)url{
     
     NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:

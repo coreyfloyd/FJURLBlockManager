@@ -38,7 +38,8 @@
 		C40FAB75122B224C0096AAA5 /* FJJSONResponseFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = C40FAB74122B224C0096AAA5 /* FJJSONResponseFormatter.m */; };
 		C40FAB7C122B23880096AAA5 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = C40FAB7B122B23880096AAA5 /* JSONKit.m */; };
 		C468064811F7767900933E3B /* NSString+extensions.m in Sources */ = {isa = PBXBuildFile; fileRef = C468064711F7767900933E3B /* NSString+extensions.m */; };
-		C46C182A11F68BE700377E8C /* FJBlockURLManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C46C182911F68BE700377E8C /* FJBlockURLManager.m */; };
+		C4712609128FA68F008530A7 /* FJBlockURLManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C4712608128FA68F008530A7 /* FJBlockURLManager.m */; };
+		C471264E128FA824008530A7 /* DemoErrorResponseFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = C471264D128FA824008530A7 /* DemoErrorResponseFormatter.m */; };
 		C48D79DF120F32700022E643 /* FJImageURLRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = C48D79DE120F32700022E643 /* FJImageURLRequest.m */; };
 		C48D79F6120F33460022E643 /* NSObject+AssociatedObjects.m in Sources */ = {isa = PBXBuildFile; fileRef = C48D79F5120F33460022E643 /* NSObject+AssociatedObjects.m */; };
 		C48D79FF120F339A0022E643 /* NSError+FJNetwork.m in Sources */ = {isa = PBXBuildFile; fileRef = C48D79FE120F339A0022E643 /* NSError+FJNetwork.m */; };
@@ -105,8 +106,10 @@
 		C40FAB7B122B23880096AAA5 /* JSONKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSONKit.m; sourceTree = "<group>"; };
 		C468064611F7767900933E3B /* NSString+extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+extensions.h"; sourceTree = "<group>"; };
 		C468064711F7767900933E3B /* NSString+extensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+extensions.m"; sourceTree = "<group>"; };
-		C46C182811F68BE700377E8C /* FJBlockURLManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJBlockURLManager.h; sourceTree = "<group>"; };
-		C46C182911F68BE700377E8C /* FJBlockURLManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = FJBlockURLManager.m; sourceTree = "<group>"; };
+		C4712607128FA68F008530A7 /* FJBlockURLManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJBlockURLManager.h; sourceTree = "<group>"; };
+		C4712608128FA68F008530A7 /* FJBlockURLManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJBlockURLManager.m; sourceTree = "<group>"; };
+		C471264C128FA824008530A7 /* DemoErrorResponseFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoErrorResponseFormatter.h; sourceTree = "<group>"; };
+		C471264D128FA824008530A7 /* DemoErrorResponseFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoErrorResponseFormatter.m; sourceTree = "<group>"; };
 		C48D79DD120F32700022E643 /* FJImageURLRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FJImageURLRequest.h; sourceTree = "<group>"; };
 		C48D79DE120F32700022E643 /* FJImageURLRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FJImageURLRequest.m; sourceTree = "<group>"; };
 		C48D79E4120F32C10022E643 /* MacroUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacroUtilities.h; sourceTree = "<group>"; };
@@ -197,16 +200,18 @@
 		C40376A41201A3D0008D5257 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				C4712607128FA68F008530A7 /* FJBlockURLManager.h */,
+				C4712608128FA68F008530A7 /* FJBlockURLManager.m */,
+				C40C63C411FB6166008A66B9 /* FJBlockURLRequest.h */,
+				C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */,
 				C40FAB73122B224C0096AAA5 /* FJJSONResponseFormatter.h */,
 				C40FAB74122B224C0096AAA5 /* FJJSONResponseFormatter.m */,
 				C4E7530A122116E500804CDB /* FJOAuthHeaderProvider.h */,
 				C4E7530B122116E500804CDB /* FJOAuthHeaderProvider.m */,
 				C48D79DD120F32700022E643 /* FJImageURLRequest.h */,
 				C48D79DE120F32700022E643 /* FJImageURLRequest.m */,
-				C40C63C411FB6166008A66B9 /* FJBlockURLRequest.h */,
-				C40C63C511FB6166008A66B9 /* FJBlockURLRequest.m */,
-				C46C182811F68BE700377E8C /* FJBlockURLManager.h */,
-				C46C182911F68BE700377E8C /* FJBlockURLManager.m */,
+				C471264C128FA824008530A7 /* DemoErrorResponseFormatter.h */,
+				C471264D128FA824008530A7 /* DemoErrorResponseFormatter.m */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -352,7 +357,6 @@
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				1D3623260D0F684500981E51 /* NetworkDemoAppDelegate.m in Sources */,
 				28D7ACF80DDB3853001CB0EB /* NetworkDemoViewController.m in Sources */,
-				C46C182A11F68BE700377E8C /* FJBlockURLManager.m in Sources */,
 				C468064811F7767900933E3B /* NSString+extensions.m in Sources */,
 				C40C63C611FB6166008A66B9 /* FJBlockURLRequest.m in Sources */,
 				C40376D01201A418008D5257 /* NSMutableURLRequest+Parameters.m in Sources */,
@@ -378,6 +382,8 @@
 				C4E7530C122116E500804CDB /* FJOAuthHeaderProvider.m in Sources */,
 				C40FAB75122B224C0096AAA5 /* FJJSONResponseFormatter.m in Sources */,
 				C40FAB7C122B23880096AAA5 /* JSONKit.m in Sources */,
+				C4712609128FA68F008530A7 /* FJBlockURLManager.m in Sources */,
+				C471264E128FA824008530A7 /* DemoErrorResponseFormatter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -395,7 +401,9 @@
 				GCC_PREFIX_HEADER = FJBlockURLManager_Prefix.pch;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "FJBlockURLManager-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
 				PRODUCT_NAME = FJBlockURLManager;
+				SDKROOT = iphoneos;
 			};
 			name = Debug;
 		};
@@ -407,7 +415,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = FJBlockURLManager_Prefix.pch;
 				INFOPLIST_FILE = "FJBlockURLManager-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
 				PRODUCT_NAME = FJBlockURLManager;
+				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

@@ -6,4 +6,5 @@
     #import "MacroUtilities.h"
     #import "NSObject+AssociatedObjects.h"
     #import "NSError+FJNetwork.h"
+    #import "NSMutableURLRequest+Parameters.h"
 #endif
